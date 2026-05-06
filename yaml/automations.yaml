@@ -1,0 +1,68 @@
+- id: maj_options_voix_tts
+  alias: MAJ options voix TTS depuis l'API
+  description: ''
+  triggers:
+  - event: start
+    trigger: homeassistant
+  - hours: /6
+    trigger: time_pattern
+  conditions: []
+  actions:
+  - variables:
+      voices: '{{ state_attr(''sensor.karotz_voice_list'',''voices'') | default([],
+        true) }}'
+  - choose:
+    - conditions:
+      - condition: template
+        value_template: '{{ voices | count > 0 }}'
+      sequence:
+      - target:
+          entity_id: input_select.karotz_voice
+        data:
+          options: "{% set voices = state_attr('sensor.karotz_voice_list','voices')
+            | default([], true) %} [\n  {% for v in voices %}\n    \"{{ v.id ~ ' -
+            ' ~ v.lang }}\"{% if not loop.last %},{% endif %}\n  {% endfor %}\n]\n"
+        action: input_select.set_options
+  - target:
+      entity_id: input_select.karotz_voice
+    action: input_select.select_first
+- id: maj_options_moods_tts
+  alias: MAJ options Moods TTS depuis l'API
+  description: ''
+  triggers:
+  - event: start
+    trigger: homeassistant
+  - hours: /6
+    trigger: time_pattern
+  conditions: []
+  actions:
+  - variables:
+      moods: '{{ state_attr(''sensor.karotz_moods_list'',''moods'') | default([],
+        true) }}'
+  - choose:
+    - conditions:
+      - condition: template
+        value_template: '{{ moods | count > 0 }}'
+      sequence:
+      - target:
+          entity_id: input_select.karotz_mood
+        data:
+          options: "{% set moods = state_attr('sensor.karotz_moods_list','moods')
+            | default([], true) %} [\n  {% for m in moods %}\n    \"{{ m.id ~ ' -
+            ' ~ (m.text\n                        | replace('&acirc;', 'â')\n                        |
+            replace('&eacute;', 'é')\n                        | replace('&egrave;',
+            'è')\n                        | replace('&ccedil;', 'ç')\n                        |
+            replace('&Ccedil;', 'Ç')\n                        | replace('&Ecirc;',
+            'Ê')\n                        | replace('&Eacute;', 'É')\n                        |
+            replace('&agrave;', 'à')\n                        | replace('&ecirc;',
+            'ê')\n                        | replace('&icirc;', 'î')\n                        |
+            replace('&ucirc;', 'û')\n                        | replace('&ugrave;',
+            'ù')\n                        | replace('&oelig;', 'œ')\n                        |
+            replace('&ocirc;', 'ô')\n                        | replace('&hellip;',
+            '...')\n                        | replace('&apos;', '\\'')\n                        |
+            replace('&rsquo;', '\\'')\n                        ) }}\"\n    {% if not
+            loop.last %},{% endif %}\n  {% endfor %}\n]\n"
+        action: input_select.set_options
+  - target:
+      entity_id: input_select.karotz_mood
+    action: input_select.select_first

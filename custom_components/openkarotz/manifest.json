@@ -1,0 +1,11 @@
+{
+  "domain": "openkarotz",
+  "name": "OpenKarotz",
+  "version": "1.0.0",
+  "documentation": "https://github.com/phschott/openkarotz",
+  "requirements": [],
+  "dependencies": [],
+  "codeowners": ["@phschott"],
+  "iot_class": "local_polling",
+  "config_flow": true
+}

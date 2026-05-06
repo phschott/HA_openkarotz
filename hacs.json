@@ -1,0 +1,6 @@
+{
+  "name": "OpenKarotz",
+  "content_in_root": false,
+  "domains": ["openkarotz"],
+  "iot_class": "local_polling"
+}

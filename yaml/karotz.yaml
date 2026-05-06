@@ -49,6 +49,7 @@ input_select:
 
 rest:
   - resource: "http://192.168.1.170/cgi-bin/status"
+    verify_ssl: false
     scan_interval: 14400
     sensor:
       - name: "Karotz used space"

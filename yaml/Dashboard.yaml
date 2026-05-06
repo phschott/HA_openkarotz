@@ -36,9 +36,11 @@ views:
             tap_action:
               action: call-service
               service: rest_command.karotz_led_off
-          - type: button
+          - show_name: true
+            show_icon: true
+            type: button
             name: LED Pulse
-            icon: mdi:brightness-auto
+            icon: mdi:lightbulb-on-10
             tap_action:
               action: call-service
               service: rest_command.karotz_led_pulse
@@ -136,8 +138,6 @@ views:
             tap_action:
               action: call-service
               service: rest_command.karotz_ears_reset
-    visible:
-      - user: e43b517406b74539b8cd655f937af723
     header: {}
     max_columns: 4
     cards: []
