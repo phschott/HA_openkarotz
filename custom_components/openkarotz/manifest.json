@@ -2,7 +2,7 @@
   "domain": "openkarotz",
   "name": "OpenKarotz",
   "version": "1.0.0",
-  "documentation": "https://github.com/phschott/openkarotz",
+  "documentation": "https://github.com/phschott/HA_openkarotz",
   "requirements": [],
   "dependencies": [],
   "codeowners": ["@phschott"],
