@@ -3,15 +3,40 @@ import aiohttp
 class KarotzAPI:
     def __init__(self, host):
         self.host = host
-
+            
     async def _get(self, path):
         url = f"http://{self.host}{path}"
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url) as resp:
-                return await resp.json(content_type=None)
 
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url) as response:
+
+                content_type = response.headers.get(
+                    "Content-Type", ""
+                )
+
+                if "application/json" in content_type:
+                    return await response.json()
+
+                return await response.text()
+
+    # =====================
+    # STATUS / POWER
+    # =====================
     async def get_status(self):
         return await self._get("/cgi-bin/status")
+    
+    async def reboot(self):
+        await self._get("/cgi-bin/reboot")
+
+    async def wakeup(self):
+        await self._get("/cgi-bin/wakeup?silent=1")
+    
+    async def sleep(self):
+        await self._get("/cgi-bin/sleep")
+
+    # =====================
+    # GET LISTS for SELECTS
+    # =====================
 
     async def get_voices(self):
         return await self._get("/cgi-bin/voice_list")
@@ -19,10 +44,34 @@ class KarotzAPI:
     async def get_moods(self):
         return await self._get("/cgi-bin/moods_list")
     
-    async def get_snapshots(self):
-        return await self._get("/cgi-bin/snapshot_list")
+    # =====================
+    # EARS / LEDS
+    # =====================
+
+    async def ears_random(self):
+        await self._get("/cgi-bin/ears_random")
+
+    async def ears_reset(self):
+        await self._get("/cgi-bin/ears_reset")
+
+    # =====================
+    # VOICE / TTS
+    # =====================
 
     async def tts(self, voice, text):
         url = f"http://{self.host}/cgi-bin/tts?voice={voice}&text={text}"
         async with aiohttp.ClientSession() as session:
             await session.get(url)
+
+    # =====================
+    # SNAPSHOT / WEBCAM
+    # =====================
+
+    async def snapshot(self):
+        await self._get("/cgi-bin/snapshot?silent=1")
+
+    async def clear_snapshots(self):
+        await self._get("/cgi-bin/clear_snapshots")
+
+    async def get_snapshots(self):
+        return await self._get("/cgi-bin/snapshot_list")
