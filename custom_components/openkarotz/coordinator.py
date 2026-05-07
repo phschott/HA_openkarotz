@@ -22,7 +22,7 @@ class KarotzCoordinator(DataUpdateCoordinator):
         try:
             return {
                 "status": await self.api.get_status(),
-                #"voices": await self.api.get_voices(),
+                "voices": await self.api.get_voices(),
                 #"moods": await self.api.get_moods(),
                 "snapshots": await self.api.get_snapshots(),
             }

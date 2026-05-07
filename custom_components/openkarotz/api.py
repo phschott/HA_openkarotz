@@ -61,6 +61,11 @@ class KarotzAPI:
     async def tts(self, voice, text):
         await self._get("/cgi-bin/tts?voice={voice}&text={text}")
 
+    async def tts(self, voice, text):
+        await self._get(
+            f"/cgi-bin/tts?voice={voice}&text={text}"
+        )
+
     # =====================
     # SNAPSHOT / WEBCAM
     # =====================
