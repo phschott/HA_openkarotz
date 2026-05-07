@@ -29,13 +29,12 @@ async def async_setup_entry(
         for method, name, icon in BUTTONS
     ]
 
+    # Ajouter ici les boutons spécifiques
+    entities.append(
+        KarotzSpeakButton(coordinator)
+    )
+
     async_add_entities(entities)
-    #async_add_entities(
-    #    [
-    #        KarotzRebootButton(coordinator),
-    #        KarotzEarsRandomButton(coordinator),
-    #    ]
-    #)
 
 class KarotzButton(ButtonEntity):
 
@@ -51,3 +50,66 @@ class KarotzButton(ButtonEntity):
 
     async def async_press(self):
         await getattr(self.api, self.method)()
+
+class KarotzSpeakButton(ButtonEntity):
+
+    def __init__(self, coordinator):
+
+        self.coordinator = coordinator
+
+        self.api = coordinator.api
+
+        self.hass = coordinator.hass
+
+        self._attr_name = (
+            "Karotz Speak"
+        )
+
+        self._attr_unique_id = (
+            "openkarotz_speak"
+        )
+
+        self._attr_icon = (
+            "mdi:account-voice"
+        )
+
+    async def async_press(self):
+
+        voice_entity = (
+            "select.karotz_voice"
+        )
+
+        text_entity = (
+            "text.karotz_tts"
+        )
+
+        voice = self.hass.states.get(
+            voice_entity
+        )
+
+        text = self.hass.states.get(
+            text_entity
+        )
+
+        if not voice or not text:
+            return
+
+        voice_id = (
+            voice.state.split("-")[0].strip()
+        )
+
+        await self.api.tts(
+            voice_id,
+            text.state,
+        )
+
+    @property
+    def device_info(self):
+        return {
+            "identifiers": {
+                ("openkarotz", "karotz")
+            },
+            "name": "OpenKarotz",
+            "manufacturer": "Karotz",
+            "model": "OpenKarotz",
+        }
