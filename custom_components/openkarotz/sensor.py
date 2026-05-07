@@ -1,20 +1,62 @@
-from homeassistant.helpers.entity import Entity
+from homeassistant.components.sensor import SensorEntity
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
+
 from .const import DOMAIN
 
+
+SENSORS = [
+    ("version", "Karotz Version", None),
+    ("karotz_percent_used_space", "Karotz Used Space", "%"),
+    ("led_color", "Karotz Led Color Raw", None),
+    ("led_pulse", "Karotz Led Pulse Raw", None),
+    ("wlan_mac", "Karotz WLAN MAC", None),
+    ("nb_tags", "Karotz Nb Tags", None),
+    ("nb_stories", "Karotz Nb Stories", None),
+    ("nb_sounds", "Karotz Nb Sounds", None),
+    ("nb_moods", "Karotz Nb Moods", None),
+]
+
+
 async def async_setup_entry(hass, entry, async_add_entities):
-    data = hass.data[DOMAIN][entry.entry_id]
-    coordinator = data["coordinator"]
-    async_add_entities([KarotzVersionSensor(coordinator)])
+    coordinator = hass.data[DOMAIN][entry.entry_id]["coordinator"]
+
+    entities = [
+        KarotzStatusSensor(coordinator, key, name, unit)
+        for key, name, unit in SENSORS
+    ]
+
+    entities.append(
+        KarotzSnapshotCountSensor(coordinator)
+    )
+
+    async_add_entities(entities)
 
 
-class KarotzVersionSensor(Entity):
-    def __init__(self, coordinator):
-        self.coordinator = coordinator
-        self._attr_name = "Karotz Version"
+class KarotzStatusSensor(CoordinatorEntity, SensorEntity):
+    def __init__(self, coordinator, key, name, unit):
+        super().__init__(coordinator)
+
+        self.key = key
+
+        self._attr_name = name
+        self._attr_native_unit_of_measurement = unit
+        self._attr_unique_id = f"openkarotz_{key}"
 
     @property
-    def state(self):
-        return self.coordinator.data.get("version")
+    def native_value(self):
+        return self.coordinator.data["status"].get(self.key)
 
-    async def async_update(self):
-        await self.coordinator.async_request_refresh()
+class KarotzSnapshotCountSensor(CoordinatorEntity, SensorEntity):
+    def __init__(self, coordinator):
+        super().__init__(coordinator)
+
+        self._attr_name = "Karotz Snapshots"
+        self._attr_unique_id = "openkarotz_snapshots"
+
+    @property
+    def native_value(self):
+        snapshots = self.coordinator.data["snapshots"].get(
+            "snapshots", []
+        )
+
+        return len(snapshots)

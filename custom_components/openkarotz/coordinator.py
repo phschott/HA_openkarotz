@@ -1,7 +1,10 @@
 from datetime import timedelta
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
-
 import logging
+
+from homeassistant.helpers.update_coordinator import (
+    DataUpdateCoordinator,
+    UpdateFailed,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -16,5 +19,14 @@ class KarotzCoordinator(DataUpdateCoordinator):
         self.api = api
 
     async def _async_update_data(self):
-        _LOGGER.debug("Fetching Karotz status")
-        return await self.api.get_status()
+        try:
+            return {
+                "status": await self.api.get_status(),
+                #"voices": await self.api.get_voices(),
+                #"moods": await self.api.get_moods(),
+                "snapshots": await self.api.get_snapshots(),
+            }
+        
+        except Exception as err:
+            raise UpdateFailed(f"Error communicating with API: {err}")
+        

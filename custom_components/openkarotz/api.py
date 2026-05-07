@@ -18,6 +18,9 @@ class KarotzAPI:
 
     async def get_moods(self):
         return await self._get("/cgi-bin/moods_list")
+    
+    async def get_snapshots(self):
+        return await self._get("/cgi-bin/snapshot_list")
 
     async def tts(self, voice, text):
         url = f"http://{self.host}/cgi-bin/tts?voice={voice}&text={text}"
