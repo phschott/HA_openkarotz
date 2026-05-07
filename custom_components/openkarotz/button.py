@@ -51,6 +51,17 @@ class KarotzButton(ButtonEntity):
     async def async_press(self):
         await getattr(self.api, self.method)()
 
+    @property
+    def device_info(self):
+        return {
+            "identifiers": {
+                ("openkarotz", "karotz")
+            },
+            "name": "OpenKarotz",
+            "manufacturer": "Karotz",
+            "model": "OpenKarotz",
+        }
+
 class KarotzSpeakButton(ButtonEntity):
 
     def __init__(self, coordinator):

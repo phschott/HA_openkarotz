@@ -53,6 +53,17 @@ class KarotzStatusSensor(CoordinatorEntity, SensorEntity):
     @property
     def native_value(self):
         return self.coordinator.data["status"].get(self.key)
+    
+    @property
+    def device_info(self):
+        return {
+            "identifiers": {
+                ("openkarotz", "karotz")
+            },
+            "name": "OpenKarotz",
+            "manufacturer": "Karotz",
+            "model": "OpenKarotz",
+        }
 
 class KarotzSnapshotCountSensor(CoordinatorEntity, SensorEntity):
     def __init__(self, coordinator):
@@ -68,3 +79,13 @@ class KarotzSnapshotCountSensor(CoordinatorEntity, SensorEntity):
         )
 
         return len(snapshots)
+    @property
+    def device_info(self):
+        return {
+            "identifiers": {
+                ("openkarotz", "karotz")
+            },
+            "name": "OpenKarotz",
+            "manufacturer": "Karotz",
+            "model": "OpenKarotz",
+        }
