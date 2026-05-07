@@ -8,6 +8,9 @@ BUTTONS = [
     ("sleep", "Karotz Sleep", "mdi:power-sleep"),
     ("ears_random", "Karotz Random Ears", "mdi:rabbit-variant-outline"),
     ("ears_reset", "Karotz Reset Ears", "mdi:restore"),
+    ("led_off", "Karotz Turn Off LEDs", "mdi:lightbulb-off"),
+    ("moods", "Karotz Random Moods", "mdi:emoticon-outline"),
+    ("clock", "Karotz Clock", "mdi:clock"),
     ("snapshot", "Karotz Snapshot", "mdi:camera"),
     ("clear_snapshots", "Karotz Clear Snapshots", "mdi:trash-can"),
 ]

@@ -45,14 +45,21 @@ class KarotzAPI:
     async def ears_reset(self):
         await self._get("/cgi-bin/ears_reset")
 
+    async def led_off(self):
+        await self._get("/cgi-bin/leds?color=000000")
+
     # =====================
     # VOICE / TTS
     # =====================
 
+    async def moods(self):
+        await self._get("/cgi-bin/apps/moods")
+
+    async def clock(self):
+        await self._get("/cgi-bin/apps/clock")
+    
     async def tts(self, voice, text):
-        url = f"http://{self.host}/cgi-bin/tts?voice={voice}&text={text}"
-        async with aiohttp.ClientSession() as session:
-            await session.get(url)
+        await self._get("/cgi-bin/tts?voice={voice}&text={text}")
 
     # =====================
     # SNAPSHOT / WEBCAM
