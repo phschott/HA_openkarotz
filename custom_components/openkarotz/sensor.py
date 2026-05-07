@@ -16,21 +16,29 @@ SENSORS = [
     ("nb_moods", "Karotz Nb Moods", None),
 ]
 
-
 async def async_setup_entry(hass, entry, async_add_entities):
+    """Setup OpenKarotz sensors."""
+
     coordinator = hass.data[DOMAIN][entry.entry_id]["coordinator"]
 
-    entities = [
-        KarotzStatusSensor(coordinator, key, name, unit)
-        for key, name, unit in SENSORS
-    ]
+    entities = []
 
+    for key, name, unit in SENSORS:
+        entities.append(
+            KarotzStatusSensor(
+                coordinator,
+                key,
+                name,
+                unit,
+            )
+        )
+
+    # Exemple sensor snapshots
     entities.append(
         KarotzSnapshotCountSensor(coordinator)
     )
 
     async_add_entities(entities)
-
 
 class KarotzStatusSensor(CoordinatorEntity, SensorEntity):
     def __init__(self, coordinator, key, name, unit):

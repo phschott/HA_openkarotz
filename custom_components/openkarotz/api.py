@@ -6,18 +6,9 @@ class KarotzAPI:
             
     async def _get(self, path):
         url = f"http://{self.host}{path}"
-
         async with aiohttp.ClientSession() as session:
-            async with session.get(url) as response:
-
-                content_type = response.headers.get(
-                    "Content-Type", ""
-                )
-
-                if "application/json" in content_type:
-                    return await response.json()
-
-                return await response.text()
+            async with session.get(url) as resp:
+                return await resp.json(content_type=None)
 
     # =====================
     # STATUS / POWER
