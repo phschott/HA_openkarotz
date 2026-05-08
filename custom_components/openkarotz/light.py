@@ -91,9 +91,9 @@ class KarotzColorLight(LightEntity):
     def device_info(self):
         return {
             "identifiers": {
-                ("openkarotz", "karotz")
+                ("openkarotz", "karotz_leds")
             },
-            "name": "OpenKarotz",
+            "name": "OpenKarotz Leds",
             "manufacturer": "Karotz",
             "model": "OpenKarotz",
         }

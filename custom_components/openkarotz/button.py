@@ -129,9 +129,9 @@ class KarotzSpeakButton(ButtonEntity):
     def device_info(self):
         return {
             "identifiers": {
-                ("openkarotz", "karotz")
+                ("openkarotz", "karotz_tts")
             },
-            "name": "OpenKarotz",
+            "name": "OpenKarotz TTS",
             "manufacturer": "Karotz",
             "model": "OpenKarotz",
         }
@@ -179,9 +179,9 @@ class KarotzMoodButton(ButtonEntity):
     def device_info(self):
         return {
             "identifiers": {
-                ("openkarotz", "karotz")
+                ("openkarotz", "karotz_tts")
             },
-            "name": "OpenKarotz",
+            "name": "OpenKarotz TTS",
             "manufacturer": "Karotz",
             "model": "OpenKarotz",
         }
@@ -232,9 +232,9 @@ class KarotzMoveEarsButton(
     def device_info(self):
         return {
             "identifiers": {
-                ("openkarotz", "karotz")
+                ("openkarotz", "karotz_ears")
             },
-            "name": "OpenKarotz",
+            "name": "OpenKarotz Ears",
             "manufacturer": "Karotz",
             "model": "OpenKarotz",
         }
@@ -326,9 +326,9 @@ class KarotzApplyLedsButton(
     def device_info(self):
         return {
             "identifiers": {
-                ("openkarotz", "karotz")
+                ("openkarotz", "karotz_leds")
             },
-            "name": "OpenKarotz",
+            "name": "OpenKarotz Leds",
             "manufacturer": "Karotz",
             "model": "OpenKarotz",
         }

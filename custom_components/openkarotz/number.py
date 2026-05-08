@@ -103,9 +103,9 @@ class KarotzEarNumber(
     def device_info(self):
         return {
             "identifiers": {
-                ("openkarotz", "karotz")
+                ("openkarotz", "karotz_ears")
             },
-            "name": "OpenKarotz",
+            "name": "OpenKarotz Ears",
             "manufacturer": "Karotz",
             "model": "OpenKarotz",
         }
@@ -153,9 +153,9 @@ class KarotzPulseSpeedNumber(
     def device_info(self):
         return {
             "identifiers": {
-                ("openkarotz", "karotz")
+                ("openkarotz", "karotz_leds")
             },
-            "name": "OpenKarotz",
+            "name": "OpenKarotz Leds",
             "manufacturer": "Karotz",
             "model": "OpenKarotz",
         }

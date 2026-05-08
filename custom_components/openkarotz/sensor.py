@@ -81,9 +81,9 @@ class KarotzSnapshotCountSensor(CoordinatorEntity, SensorEntity):
     def device_info(self):
         return {
             "identifiers": {
-                ("openkarotz", "karotz")
+                ("openkarotz", "karotz_picture")
             },
-            "name": "OpenKarotz",
+            "name": "OpenKarotz Picture",
             "manufacturer": "Karotz",
             "model": "OpenKarotz",
         }
