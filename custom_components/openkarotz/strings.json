@@ -1,0 +1,13 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connexion OpenKarotz",
+        "description": "Entrez l'adresse IP ou le hostname de votre lapin OpenKarotz.",
+        "data": {
+          "host": "Adresse IP / Hostname"
+        }
+      }
+    }
+  }
+}
