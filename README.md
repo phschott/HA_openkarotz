@@ -20,9 +20,15 @@ Please make sure you have installed OpenKarotz on Free Rabbits OS, as we are usi
 - Change color (Using */cgi-bin/leds* api)
 
 ## Upcoming features
-- Radios
-- Webcam
+- Multi-language
+- Manage TTS cache
+- Display snapshots
+- Webcam (Using */cgi-bin/webcam* api)
+- Radios (Using */cgi-bin/sound?url={karotzStreamUrl}* and */cgi-bin/sound_control?cmd={cmd}* apis)
+- Disable ears
+- RFID Management??? Not sure yet.
 
 ## Known issues
 - Pulse light is not working
+- Default light color and pulse is not synced from status
 - Number of snapshots not refreshed after snaphot or cleanup (1' delay)
