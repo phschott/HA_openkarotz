@@ -52,14 +52,14 @@ class KarotzAPI:
     # VOICE / TTS
     # =====================
 
-    async def moods(self):
+    async def random_mood(self):
         await self._get("/cgi-bin/apps/moods")
+    
+    async def moods(self, mood):
+        await self._get(f"/cgi-bin/apps/moods?id={mood}")
 
     async def clock(self):
         await self._get("/cgi-bin/apps/clock")
-    
-    async def tts(self, voice, text):
-        await self._get("/cgi-bin/tts?voice={voice}&text={text}")
 
     async def tts(self, voice, text):
         await self._get(

@@ -9,7 +9,7 @@ BUTTONS = [
     ("ears_random", "Karotz Random Ears", "mdi:rabbit-variant-outline"),
     ("ears_reset", "Karotz Reset Ears", "mdi:restore"),
     ("led_off", "Karotz Turn Off LEDs", "mdi:lightbulb-off"),
-    ("moods", "Karotz Random Moods", "mdi:emoticon-outline"),
+    ("random_mood", "Karotz Random Moods", "mdi:emoticon-outline"),
     ("clock", "Karotz Clock", "mdi:clock"),
     ("snapshot", "Karotz Snapshot", "mdi:camera"),
     ("clear_snapshots", "Karotz Clear Snapshots", "mdi:trash-can"),
@@ -32,6 +32,9 @@ async def async_setup_entry(
     # Ajouter ici les boutons spécifiques
     entities.append(
         KarotzSpeakButton(coordinator)
+    )
+    entities.append(
+        KarotzMoodButton(coordinator)
     )
 
     async_add_entities(entities)
@@ -91,7 +94,7 @@ class KarotzSpeakButton(ButtonEntity):
         )
 
         text_entity = (
-            "text.karotz_tts"
+            "text.openkarotz_karotz_tts"
         )
 
         voice = self.hass.states.get(
@@ -112,6 +115,56 @@ class KarotzSpeakButton(ButtonEntity):
         await self.api.tts(
             voice_id,
             text.state,
+        )
+
+    @property
+    def device_info(self):
+        return {
+            "identifiers": {
+                ("openkarotz", "karotz")
+            },
+            "name": "OpenKarotz",
+            "manufacturer": "Karotz",
+            "model": "OpenKarotz",
+        }
+class KarotzMoodButton(ButtonEntity):
+
+    def __init__(self, coordinator):
+
+        self.coordinator = coordinator
+
+        self.api = coordinator.api
+
+        self.hass = coordinator.hass
+
+        self._attr_name = (
+            "Karotz Mood"
+        )
+
+        self._attr_unique_id = (
+            "openkarotz_mood"
+        )
+
+        self._attr_icon = (
+            "mdi:emoticon-outline"
+        )
+
+    async def async_press(self):
+
+        mood_entity = (
+            "select.openkarotz_karotz_mood"
+        )
+
+        mood = self.hass.states.get(
+            mood_entity
+        )
+
+        mood_id = (
+            mood.state.split("-")[0].strip()
+        )
+
+        await self.api.moods(
+            mood_id,
         )
 
     @property
