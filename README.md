@@ -28,6 +28,26 @@ Please make sure you have installed OpenKarotz on Free Rabbits OS, as we are usi
 - Disable ears
 - RFID Management??? Not sure yet.
 
+## Installation
+
+### HACS (Recommended)
+
+1. Open HACS in Home Assistant
+2. Go to "Integrations"
+3. Click the "+" button
+4. Search for "OpenKarotz"
+5. Install the integration
+6. Restart Home Assistant
+
+### Manual Installation
+
+1. Download the latest release from [GitHub](https://github.com/phschott/HA_openkarotz/releases)
+2. Extract the `custom_components/openkarotz` folder to your Home Assistant's `custom_components` directory
+3. Restart Home Assistant
+
+## Configuration
+Just enter IP or hostname or your Karrotz. Done!
+
 ## Known issues
 - Pulse light is not working
 - Default light color and pulse is not synced from status
