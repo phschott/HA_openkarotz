@@ -51,8 +51,8 @@ class KarotzAPI:
     async def led_off(self):
         await self._get("/cgi-bin/leds?color=000000")
 
-    async def leds(self, hex1, speed, hex2):
-        await self._get(f"/cgi-bin/leds?pulse=1&color={hex1}&speed={speed}&color2={hex2}")
+    async def leds(self, pulse, hex1, speed, hex2):
+        await self._get(f"/cgi-bin/leds?pulse={pulse}&color={hex1}&speed={speed}&color2={hex2}")
 
     # =====================
     # VOICE / TTS

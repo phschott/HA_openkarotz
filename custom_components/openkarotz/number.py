@@ -148,3 +148,14 @@ class KarotzPulseSpeedNumber(
         self._attr_native_value = value
 
         self.async_write_ha_state()
+
+    @property
+    def device_info(self):
+        return {
+            "identifiers": {
+                ("openkarotz", "karotz")
+            },
+            "name": "OpenKarotz",
+            "manufacturer": "Karotz",
+            "model": "OpenKarotz",
+        }

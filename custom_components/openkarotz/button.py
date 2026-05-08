@@ -276,6 +276,15 @@ class KarotzApplyLedsButton(
         speed = self.hass.states.get(
             "number.karotz_pulse_speed"
         )
+        
+        pulse = self.hass.states.get(
+            "switch.openkarotz_karotz_led_pulse"
+        )
+
+        pulse_value = 1
+
+        if pulse and pulse.state == "off":
+            pulse_value = 0
 
         if (
             color1 is None
@@ -295,7 +304,6 @@ class KarotzApplyLedsButton(
 
             hex1 = "%02X%02X%02X" % rgb1
 
-
         if color2.state == "off":
             hex2 = "000000"
 
@@ -308,7 +316,19 @@ class KarotzApplyLedsButton(
             hex2 = "%02X%02X%02X" % rgb2
 
         await self.api.leds(
+            pulse_value,
             hex1,
             int(float(speed.state)),
             hex2,
         )
+    
+    @property
+    def device_info(self):
+        return {
+            "identifiers": {
+                ("openkarotz", "karotz")
+            },
+            "name": "OpenKarotz",
+            "manufacturer": "Karotz",
+            "model": "OpenKarotz",
+        }
