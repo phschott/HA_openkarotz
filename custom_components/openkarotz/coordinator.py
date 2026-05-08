@@ -1,5 +1,5 @@
-from datetime import timedelta
 import logging
+from datetime import timedelta
 
 from homeassistant.helpers.update_coordinator import (
     DataUpdateCoordinator,
@@ -27,7 +27,6 @@ class KarotzCoordinator(DataUpdateCoordinator):
                 "snapshots": await self.api.get_snapshots(),
                 "radios": await self.api.get_radios(),
             }
-        
+
         except Exception as err:
             raise UpdateFailed(f"Error communicating with API: {err}")
-        

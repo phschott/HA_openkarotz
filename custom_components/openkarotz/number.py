@@ -1,12 +1,12 @@
 from homeassistant.components.number import (
     NumberEntity,
 )
-
 from homeassistant.helpers.restore_state import (
     RestoreEntity,
 )
 
 from .const import DOMAIN
+
 
 async def async_setup_entry(
     hass,
@@ -109,7 +109,7 @@ class KarotzEarNumber(
             "manufacturer": "Karotz",
             "model": "OpenKarotz",
         }
-    
+
 class KarotzPulseSpeedNumber(
     RestoreEntity,
     NumberEntity,

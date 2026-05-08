@@ -1,9 +1,10 @@
 from homeassistant.components.light import (
-    LightEntity,
     ColorMode,
+    LightEntity,
 )
 
 from .const import DOMAIN
+
 
 async def async_setup_entry(
     hass,

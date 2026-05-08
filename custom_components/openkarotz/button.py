@@ -36,7 +36,7 @@ async def async_setup_entry(
     entities.append(
         KarotzMoodButton(coordinator)
     )
-    
+
     entities.append(
         KarotzMoveEarsButton(coordinator)
     )
@@ -185,7 +185,7 @@ class KarotzMoodButton(ButtonEntity):
             "manufacturer": "Karotz",
             "model": "OpenKarotz",
         }
-    
+
 class KarotzMoveEarsButton(
     ButtonEntity,
 ):
@@ -238,7 +238,7 @@ class KarotzMoveEarsButton(
             "manufacturer": "Karotz",
             "model": "OpenKarotz",
         }
-    
+
 class KarotzApplyLedsButton(
     ButtonEntity,
 ):
@@ -276,7 +276,7 @@ class KarotzApplyLedsButton(
         speed = self.hass.states.get(
             "number.karotz_pulse_speed"
         )
-        
+
         pulse = self.hass.states.get(
             "switch.openkarotz_karotz_led_pulse"
         )
@@ -321,7 +321,7 @@ class KarotzApplyLedsButton(
             int(float(speed.state)),
             hex2,
         )
-    
+
     @property
     def device_info(self):
         return {

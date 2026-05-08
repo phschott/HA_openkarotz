@@ -1,10 +1,10 @@
+import html
+
 from homeassistant.components.select import SelectEntity
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.update_coordinator import (
     CoordinatorEntity,
 )
-
-import html
 
 from .const import DOMAIN
 
@@ -15,7 +15,6 @@ async def async_setup_entry(
     async_add_entities,
 ):
     """Setup OpenKarotz select entities."""
-
     coordinator = hass.data[DOMAIN][entry.entry_id][
         "coordinator"
     ]
@@ -48,7 +47,6 @@ class KarotzBaseSelect(
         icon,
     ):
         """Initialize select."""
-
         super().__init__(coordinator)
 
         self.api = coordinator.api
@@ -65,7 +63,6 @@ class KarotzBaseSelect(
 
     async def async_added_to_hass(self):
         """Restore previous state."""
-
         await super().async_added_to_hass()
 
         last_state = await self.async_get_last_state()
@@ -87,7 +84,6 @@ class KarotzBaseSelect(
     @property
     def options(self):
         """Return available options."""
-
         data = self.coordinator.data.get(
             self.data_key,
             {},
@@ -120,7 +116,6 @@ class KarotzBaseSelect(
     @property
     def current_option(self):
         """Return selected option."""
-
         if (
             self._attr_current_option
             not in self.options
@@ -137,7 +132,6 @@ class KarotzBaseSelect(
         option,
     ):
         """Handle selection."""
-
         if option not in self.options:
             return
 
@@ -148,7 +142,6 @@ class KarotzBaseSelect(
     @property
     def available(self):
         """Return availability."""
-
         return (
             self.coordinator.last_update_success
         )
@@ -156,7 +149,6 @@ class KarotzBaseSelect(
     @property
     def device_info(self):
         """Return device info."""
-
         return {
             "identifiers": {
                 ("openkarotz", "karotz")

@@ -1,27 +1,27 @@
 import aiohttp
 
+
 class KarotzAPI:
     def __init__(self, host):
         self.host = host
-            
+
     async def _get(self, path):
         url = f"http://{self.host}{path}"
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url) as resp:
-                return await resp.json(content_type=None)
+        async with aiohttp.ClientSession() as session, session.get(url) as resp:
+            return await resp.json(content_type=None)
 
     # =====================
     # STATUS / POWER
     # =====================
     async def get_status(self):
         return await self._get("/cgi-bin/status")
-    
+
     async def reboot(self):
         await self._get("/cgi-bin/reboot")
 
     async def wakeup(self):
         await self._get("/cgi-bin/wakeup?silent=1")
-    
+
     async def sleep(self):
         await self._get("/cgi-bin/sleep")
 
@@ -34,7 +34,7 @@ class KarotzAPI:
 
     async def get_moods(self):
         return await self._get("/cgi-bin/moods_list")
-    
+
     # =====================
     # EARS / LEDS
     # =====================
@@ -60,7 +60,7 @@ class KarotzAPI:
 
     async def random_mood(self):
         await self._get("/cgi-bin/apps/moods")
-    
+
     async def moods(self, mood):
         await self._get(f"/cgi-bin/apps/moods?id={mood}")
 
@@ -71,7 +71,7 @@ class KarotzAPI:
         await self._get(
             f"/cgi-bin/tts?voice={voice}&text={text}"
         )
-    
+
     # =====================
     # RADIOS
     # =====================

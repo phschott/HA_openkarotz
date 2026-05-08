@@ -1,8 +1,8 @@
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
-from .const import DOMAIN
 from .api import KarotzAPI
+from .const import DOMAIN
 from .coordinator import KarotzCoordinator
 
 PLATFORMS = ["sensor", "button", "select", "text", "number", "light", "switch"]

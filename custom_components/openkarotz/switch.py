@@ -1,12 +1,12 @@
 from homeassistant.components.switch import (
     SwitchEntity,
 )
-
 from homeassistant.helpers.restore_state import (
     RestoreEntity,
 )
 
 from .const import DOMAIN
+
 
 async def async_setup_entry(
     hass,
@@ -81,7 +81,7 @@ class KarotzPulseSwitch(
     @property
     def is_on(self):
         return self._attr_is_on
-    
+
     @property
     def device_info(self):
         return {

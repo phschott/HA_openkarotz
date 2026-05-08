@@ -1,5 +1,6 @@
 from homeassistant.components.media_player import MediaPlayerEntity
 
+
 class KarotzMediaPlayer(MediaPlayerEntity):
     def __init__(self, api):
         self.api = api

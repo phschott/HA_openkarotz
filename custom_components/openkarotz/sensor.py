@@ -3,7 +3,6 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
 
-
 SENSORS = [
     ("version", "Karotz Version", None),
     ("karotz_percent_used_space", "Karotz Used Space", "%"),
@@ -18,7 +17,6 @@ SENSORS = [
 
 async def async_setup_entry(hass, entry, async_add_entities):
     """Setup OpenKarotz sensors."""
-
     coordinator = hass.data[DOMAIN][entry.entry_id]["coordinator"]
 
     entities = []
@@ -53,7 +51,7 @@ class KarotzStatusSensor(CoordinatorEntity, SensorEntity):
     @property
     def native_value(self):
         return self.coordinator.data["status"].get(self.key)
-    
+
     @property
     def device_info(self):
         return {
