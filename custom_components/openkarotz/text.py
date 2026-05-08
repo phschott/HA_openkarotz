@@ -49,9 +49,9 @@ class KarotzTTSText(TextEntity):
     def device_info(self):
         return {
             "identifiers": {
-                ("openkarotz", "karotz_tts")
+                ("openkarotz", "karotz_sound")
             },
-            "name": "OpenKarotz TTS",
+            "name": "OpenKarotz Sound",
             "manufacturer": "Karotz",
             "model": "OpenKarotz",
         }

@@ -151,9 +151,9 @@ class KarotzBaseSelect(
         """Return device info."""
         return {
             "identifiers": {
-                ("openkarotz", "karotz_tts")
+                ("openkarotz", "karotz_sound")
             },
-            "name": "OpenKarotz TTS",
+            "name": "OpenKarotz Sound",
             "manufacturer": "Karotz",
             "model": "OpenKarotz",
         }

@@ -9,8 +9,8 @@ BUTTONS = [
     ("ears_random", "Karotz Random Ears", "mdi:rabbit-variant-outline", "karotz_ears", "OpenKarotz Ears"),
     ("ears_reset", "Karotz Reset Ears", "mdi:restore", "karotz_ears", "OpenKarotz Ears"),
     ("led_off", "Karotz Turn Off LEDs", "mdi:lightbulb-off", "karotz_leds", "OpenKarotz LEDs"),
-    ("random_mood", "Karotz Random Moods", "mdi:emoticon-outline", "karotz_tts", "OpenKarotz TTS"),
-    ("clock", "Karotz Clock", "mdi:clock", "karotz_tts", "OpenKarotz TTS"),
+    ("random_mood", "Karotz Random Moods", "mdi:emoticon-outline", "karotz_sound", "OpenKarotz Sound"),
+    ("clock", "Karotz Clock", "mdi:clock", "karotz_sound", "OpenKarotz Sound"),
     ("snapshot", "Karotz Snapshot", "mdi:camera", "karotz_picture", "OpenKarotz Picture"),
     ("clear_snapshots", "Karotz Clear Snapshots", "mdi:trash-can", "karotz_picture", "OpenKarotz Picture"),
 ]
@@ -132,9 +132,9 @@ class KarotzSpeakButton(ButtonEntity):
     def device_info(self):
         return {
             "identifiers": {
-                ("openkarotz", "karotz_tts")
+                ("openkarotz", "karotz_sound")
             },
-            "name": "OpenKarotz TTS",
+            "name": "OpenKarotz Sound",
             "manufacturer": "Karotz",
             "model": "OpenKarotz",
         }
@@ -182,9 +182,9 @@ class KarotzMoodButton(ButtonEntity):
     def device_info(self):
         return {
             "identifiers": {
-                ("openkarotz", "karotz_tts")
+                ("openkarotz", "karotz_sound")
             },
-            "name": "OpenKarotz TTS",
+            "name": "OpenKarotz Sound",
             "manufacturer": "Karotz",
             "model": "OpenKarotz",
         }
