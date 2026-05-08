@@ -24,6 +24,7 @@ async def async_setup_entry(
         [
             KarotzVoiceSelect(coordinator),
             KarotzMoodSelect(coordinator),
+            KarotzRadioSelect(coordinator),
         ]
     )
 
@@ -209,4 +210,26 @@ class KarotzMoodSelect(
             "Karotz Mood",
             "openkarotz_mood",
             "mdi:emoticon-happy",
+        )
+
+class KarotzRadioSelect(
+    KarotzBaseSelect,
+):
+    """Radio selector."""
+
+    data_key = "streams"
+
+    options_key = "streams"
+
+    option_label = "name"
+
+    def __init__(
+        self,
+        coordinator,
+    ):
+        super().__init__(
+            coordinator,
+            "Karotz radios",
+            "openkarotz_radios",
+            "mdi:radio",
         )

@@ -71,6 +71,19 @@ class KarotzAPI:
         await self._get(
             f"/cgi-bin/tts?voice={voice}&text={text}"
         )
+    
+    # =====================
+    # RADIOS
+    # =====================
+
+    async def get_radios(self):
+        await self._get("/cgi-bin/radios_list")
+
+    async def sound_url(self, karotzStreamUrl):
+        await self._get(f"/cgi-bin/sound?url={karotzStreamUrl}")
+
+    async def sound_control(self, cmd):
+        await self._get(f"/cgi-bin/sound_control?cmd={cmd}")
 
     # =====================
     # SNAPSHOT / WEBCAM

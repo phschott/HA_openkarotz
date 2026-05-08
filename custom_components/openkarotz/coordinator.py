@@ -25,6 +25,7 @@ class KarotzCoordinator(DataUpdateCoordinator):
                 "voices": await self.api.get_voices(),
                 "moods": await self.api.get_moods(),
                 "snapshots": await self.api.get_snapshots(),
+                "radios": await self.api.get_radios(),
             }
         
         except Exception as err:
