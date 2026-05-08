@@ -3,16 +3,16 @@ from homeassistant.components.button import ButtonEntity
 from .const import DOMAIN
 
 BUTTONS = [
-    ("reboot", "Karotz Reboot", "mdi:restore"),
-    ("wakeup", "Karotz Wake Up", "mdi:weather-sunset-up"),
-    ("sleep", "Karotz Sleep", "mdi:power-sleep"),
-    ("ears_random", "Karotz Random Ears", "mdi:rabbit-variant-outline"),
-    ("ears_reset", "Karotz Reset Ears", "mdi:restore"),
-    ("led_off", "Karotz Turn Off LEDs", "mdi:lightbulb-off"),
-    ("random_mood", "Karotz Random Moods", "mdi:emoticon-outline"),
-    ("clock", "Karotz Clock", "mdi:clock"),
-    ("snapshot", "Karotz Snapshot", "mdi:camera"),
-    ("clear_snapshots", "Karotz Clear Snapshots", "mdi:trash-can"),
+    ("reboot", "Karotz Reboot", "mdi:restore", "karotz", "OpenKarotz"),
+    ("wakeup", "Karotz Wake Up", "mdi:weather-sunset-up", "karotz", "OpenKarotz"),
+    ("sleep", "Karotz Sleep", "mdi:power-sleep", "karotz", "OpenKarotz"),
+    ("ears_random", "Karotz Random Ears", "mdi:rabbit-variant-outline", "karotz_ears", "OpenKarotz Ears"),
+    ("ears_reset", "Karotz Reset Ears", "mdi:restore", "karotz_ears", "OpenKarotz Ears"),
+    ("led_off", "Karotz Turn Off LEDs", "mdi:lightbulb-off", "karotz_leds", "OpenKarotz LEDs"),
+    ("random_mood", "Karotz Random Moods", "mdi:emoticon-outline", "karotz_tts", "OpenKarotz TTS"),
+    ("clock", "Karotz Clock", "mdi:clock", "karotz_tts", "OpenKarotz TTS"),
+    ("snapshot", "Karotz Snapshot", "mdi:camera", "karotz_picture", "OpenKarotz Picture"),
+    ("clear_snapshots", "Karotz Clear Snapshots", "mdi:trash-can", "karotz_picture", "OpenKarotz Picture"),
 ]
 
 async def async_setup_entry(
@@ -25,8 +25,8 @@ async def async_setup_entry(
     ]
 
     entities = [
-        KarotzButton(coordinator, method, name, icon)
-        for method, name, icon in BUTTONS
+        KarotzButton(coordinator, method, name, icon, device_id, device_name)
+        for method, name, icon, device_id, device_name in BUTTONS
     ]
 
     # Ajouter ici les boutons spécifiques
@@ -49,7 +49,7 @@ async def async_setup_entry(
 
 class KarotzButton(ButtonEntity):
 
-    def __init__(self, coordinator, method, name, icon):
+    def __init__(self, coordinator, method, name, icon, device_id, device_name):
         self.coordinator = coordinator
         self.api = coordinator.api
 
@@ -59,6 +59,9 @@ class KarotzButton(ButtonEntity):
         self._attr_unique_id = f"openkarotz_{method}"
         self._attr_icon = icon
 
+        self._device_id = device_id
+        self._device_name = device_name
+
     async def async_press(self):
         await getattr(self.api, self.method)()
 
@@ -66,9 +69,9 @@ class KarotzButton(ButtonEntity):
     def device_info(self):
         return {
             "identifiers": {
-                ("openkarotz", "karotz")
+                ("openkarotz", self._device_id)
             },
-            "name": "OpenKarotz",
+            "name": self._device_name,
             "manufacturer": "Karotz",
             "model": "OpenKarotz",
         }
