@@ -42,6 +42,9 @@ class KarotzAPI:
     async def ears_random(self):
         await self._get("/cgi-bin/ears_random")
 
+    async def ears(self, left, right):
+        await self._get(f"/cgi-bin/ears?left={left}&right={right}&noreset=1")
+
     async def ears_reset(self):
         await self._get("/cgi-bin/ears_reset")
 

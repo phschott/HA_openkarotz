@@ -36,6 +36,10 @@ async def async_setup_entry(
     entities.append(
         KarotzMoodButton(coordinator)
     )
+    
+    entities.append(
+        KarotzMoveEarsButton(coordinator)
+    )
 
     async_add_entities(entities)
 
@@ -165,6 +169,59 @@ class KarotzMoodButton(ButtonEntity):
 
         await self.api.moods(
             mood_id,
+        )
+
+    @property
+    def device_info(self):
+        return {
+            "identifiers": {
+                ("openkarotz", "karotz")
+            },
+            "name": "OpenKarotz",
+            "manufacturer": "Karotz",
+            "model": "OpenKarotz",
+        }
+    
+class KarotzMoveEarsButton(
+    ButtonEntity,
+):
+
+    def __init__(self, coordinator):
+
+        self.coordinator = coordinator
+
+        self.api = coordinator.api
+
+        self.hass = coordinator.hass
+
+        self._attr_name = (
+            "Karotz Move Ears"
+        )
+
+        self._attr_unique_id = (
+            "openkarotz_move_ears"
+        )
+
+        self._attr_icon = (
+            "mdi:rabbit"
+        )
+
+    async def async_press(self):
+
+        left = self.hass.states.get(
+            "number.openkarotz_karotz_ear_left"
+        )
+
+        right = self.hass.states.get(
+            "number.openkarotz_karotz_ear_right"
+        )
+
+        if left is None or right is None:
+            return
+
+        await self.api.ears(
+            int(float(left.state)),
+            int(float(right.state)),
         )
 
     @property
