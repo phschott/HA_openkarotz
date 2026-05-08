@@ -41,6 +41,10 @@ async def async_setup_entry(
         KarotzMoveEarsButton(coordinator)
     )
 
+    entities.append(
+        KarotzApplyLedsButton(coordinator)
+    )
+
     async_add_entities(entities)
 
 class KarotzButton(ButtonEntity):
@@ -234,3 +238,77 @@ class KarotzMoveEarsButton(
             "manufacturer": "Karotz",
             "model": "OpenKarotz",
         }
+    
+class KarotzApplyLedsButton(
+    ButtonEntity,
+):
+
+    def __init__(self, coordinator):
+
+        self.coordinator = coordinator
+
+        self.api = coordinator.api
+
+        self.hass = coordinator.hass
+
+        self._attr_name = (
+            "Karotz Apply LEDs"
+        )
+
+        self._attr_unique_id = (
+            "openkarotz_apply_leds"
+        )
+
+        self._attr_icon = (
+            "mdi:led-strip"
+        )
+
+    async def async_press(self):
+
+        color1 = self.hass.states.get(
+            "light.karotz_color_1"
+        )
+
+        color2 = self.hass.states.get(
+            "light.karotz_color_2"
+        )
+
+        speed = self.hass.states.get(
+            "number.karotz_pulse_speed"
+        )
+
+        if (
+            color1 is None
+            or color2 is None
+            or speed is None
+        ):
+            return
+
+        if color1.state == "off":
+            hex1 = "000000"
+
+        else:
+            rgb1 = color1.attributes.get(
+                "rgb_color",
+                (0, 255, 0),
+            )
+
+            hex1 = "%02X%02X%02X" % rgb1
+
+
+        if color2.state == "off":
+            hex2 = "000000"
+
+        else:
+            rgb2 = color2.attributes.get(
+                "rgb_color",
+                (0, 0, 0),
+            )
+
+            hex2 = "%02X%02X%02X" % rgb2
+
+        await self.api.leds(
+            hex1,
+            int(float(speed.state)),
+            hex2,
+        )

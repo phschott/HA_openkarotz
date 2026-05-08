@@ -31,6 +31,12 @@ async def async_setup_entry(
                 "Karotz Ear Right",
                 "openkarotz_ear_right",
             ),
+            KarotzPulseSpeedNumber(
+                coordinator,
+                "pulse",
+                "Karotz Pulse Speed",
+                "karotz_pulse_speed",
+            ),
         ]
     )
 
@@ -103,3 +109,42 @@ class KarotzEarNumber(
             "manufacturer": "Karotz",
             "model": "OpenKarotz",
         }
+    
+class KarotzPulseSpeedNumber(
+    RestoreEntity,
+    NumberEntity,
+):
+
+    def __init__(
+        self,
+        coordinator,
+        side,
+        name,
+        unique_id,
+    ):
+
+        self.coordinator = coordinator
+
+        self._attr_name = name
+
+        self._attr_unique_id = unique_id
+
+        self._attr_icon = (
+            "mdi:speedometer"
+        )
+
+        self._attr_native_min_value = 0
+
+        self._attr_native_max_value = 2000
+
+        self._attr_native_step = 1
+
+        self._attr_native_value = 700
+
+    async def async_set_native_value(
+        self,
+        value,
+    ):
+        self._attr_native_value = value
+
+        self.async_write_ha_state()
