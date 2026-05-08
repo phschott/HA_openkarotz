@@ -101,11 +101,11 @@ class KarotzSpeakButton(ButtonEntity):
     async def async_press(self):
 
         voice_entity = (
-            "select.karotz_voice"
+            "select.openkarotz_sound_karotz_voice"
         )
 
         text_entity = (
-            "text.openkarotz_karotz_tts"
+            "text.openkarotz_sound_karotz_tts"
         )
 
         voice = self.hass.states.get(
@@ -163,7 +163,7 @@ class KarotzMoodButton(ButtonEntity):
     async def async_press(self):
 
         mood_entity = (
-            "select.openkarotz_karotz_mood"
+            "select.openkarotz_sound_karotz_mood"
         )
 
         mood = self.hass.states.get(
@@ -216,11 +216,11 @@ class KarotzMoveEarsButton(
     async def async_press(self):
 
         left = self.hass.states.get(
-            "number.openkarotz_karotz_ear_left"
+            "number.openkarotz_ears_karotz_ear_left"
         )
 
         right = self.hass.states.get(
-            "number.openkarotz_karotz_ear_right"
+            "number.openkarotz_ears_karotz_ear_right"
         )
 
         if left is None or right is None:
@@ -269,19 +269,19 @@ class KarotzApplyLedsButton(
     async def async_press(self):
 
         color1 = self.hass.states.get(
-            "light.karotz_color_1"
+            "light.openkarotz_leds_karotz_color_1"
         )
 
         color2 = self.hass.states.get(
-            "light.karotz_color_2"
+            "light.openkarotz_leds_karotz_color_2"
         )
 
         speed = self.hass.states.get(
-            "number.karotz_pulse_speed"
+            "number.openkarotz_leds_karotz_pulse_speed"
         )
 
         pulse = self.hass.states.get(
-            "switch.openkarotz_karotz_led_pulse"
+            "switch.openkarotz_leds_karotz_led_pulse"
         )
 
         pulse_value = 1
