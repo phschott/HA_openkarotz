@@ -4,19 +4,23 @@ from homeassistant.core import HomeAssistant
 from .api import KarotzAPI
 from .const import DOMAIN
 from .coordinator import KarotzCoordinator
+from .coordinator import MyFastCoordinator
 
 PLATFORMS = ["sensor", "button", "select", "text", "number", "light", "switch"]
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     api = KarotzAPI(entry.data["host"])
     coordinator = KarotzCoordinator(hass, api)
+    fast_coordinator = MyFastCoordinator(hass, api)
 
+    await fast_coordinator.async_config_entry_first_refresh()
     await coordinator.async_config_entry_first_refresh()
 
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN][entry.entry_id] = {
         "api": api,
         "coordinator": coordinator,
+        "fast_coordinator": fast_coordinator,
     }
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)

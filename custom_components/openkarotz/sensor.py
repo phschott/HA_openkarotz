@@ -18,6 +18,7 @@ SENSORS = [
 async def async_setup_entry(hass, entry, async_add_entities):
     """Setup OpenKarotz sensors."""
     coordinator = hass.data[DOMAIN][entry.entry_id]["coordinator"]
+    fast_coordinator = hass.data[DOMAIN][entry.entry_id]["fast_coordinator"]
 
     entities = []
 
@@ -33,7 +34,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
 
     # Exemple sensor snapshots
     entities.append(
-        KarotzSnapshotCountSensor(coordinator)
+        KarotzSnapshotCountSensor(fast_coordinator)
     )
 
     async_add_entities(entities)
@@ -64,8 +65,8 @@ class KarotzStatusSensor(CoordinatorEntity, SensorEntity):
         }
 
 class KarotzSnapshotCountSensor(CoordinatorEntity, SensorEntity):
-    def __init__(self, coordinator):
-        super().__init__(coordinator)
+    def __init__(self, fast_coordinator):
+        super().__init__(fast_coordinator)
 
         self._attr_name = "Karotz Snapshots"
         self._attr_unique_id = "openkarotz_snapshots"
