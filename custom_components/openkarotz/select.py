@@ -165,6 +165,10 @@ class KarotzSelect(
         self.options_key = options_key
 
         self.option_label = option_label
+        
+        self.entity_id = (
+            f"select.openkarotz_{translation_key}"
+        )
 
         self._attr_translation_key = (
             translation_key

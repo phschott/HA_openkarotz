@@ -167,6 +167,10 @@ class KarotzNumber(
         self.device_id = device_id
         self.device_name = device_name
 
+        self.entity_id = (
+            f"number.openkarotz_{translation_key}"
+        )
+
         self._attr_translation_key = (
             translation_key
         )

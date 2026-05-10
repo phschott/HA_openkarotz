@@ -97,6 +97,10 @@ class KarotzColorLight(
 
         self.suffix = suffix
 
+        self.entity_id = (
+            f"light.openkarotz_color_{suffix}"
+        )
+
         self._attr_translation_key = (
             translation_key
         )

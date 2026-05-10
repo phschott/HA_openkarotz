@@ -135,6 +135,10 @@ class KarotzSwitch(
         self.device_id = device_id
         self.device_name = device_name
 
+        self.entity_id = (
+            f"switch.openkarotz_{translation_key}"
+        )
+
         self._attr_translation_key = (
             translation_key
         )

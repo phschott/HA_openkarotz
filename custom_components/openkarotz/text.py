@@ -130,8 +130,15 @@ class KarotzText(
 
         self.device_id = device_id
         self.device_name = device_name
+        self.entity_id = (
+            f"text.openkarotz_{translation_key}"
+        )
 
         self._attr_translation_key = (
+            translation_key
+        )
+
+        self._attr_suggested_object_id = (
             translation_key
         )
 

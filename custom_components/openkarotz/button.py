@@ -7,19 +7,19 @@ from .const import DOMAIN
 MANUFACTURER = "Karotz"
 MODEL = "OpenKarotz"
 
-VOICE_ENTITY = "select.openkarotz_sound_voix"
-TEXT_ENTITY = "text.openkarotz_sound_texte_tts"
+VOICE_ENTITY = "select.openkarotz_voice"
+TEXT_ENTITY = "text.openkarotz_tts"
 
-MOOD_ENTITY = "select.openkarotz_sound_ambiance"
+MOOD_ENTITY = "select.openkarotz_mood"
 
-LEFT_EAR_ENTITY = "number.openkarotz_ears_oreille_gauche"
-RIGHT_EAR_ENTITY = "number.openkarotz_ears_oreille_droite"
+LEFT_EAR_ENTITY = "number.openkarotz_ear_left"
+RIGHT_EAR_ENTITY = "number.openkarotz_ear_right"
 
-LED_1_ENTITY = "light.openkarotz_leds_couleur_1"
-LED_2_ENTITY = "light.openkarotz_leds_couleur_2"
+LED_1_ENTITY = "light.openkarotz_color_1"
+LED_2_ENTITY = "light.openkarotz_color_2"
 
-LED_SPEED_ENTITY = "number.openkarotz_leds_vitesse_du_pulse"
-LED_PULSE_ENTITY = "switch.openkarotz_leds_pulse_leds"
+LED_SPEED_ENTITY = "number.openkarotz_pulse_speed"
+LED_PULSE_ENTITY = "switch.openkarotz_led_pulse"
 
 
 BUTTONS = [
