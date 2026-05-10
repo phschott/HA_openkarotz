@@ -86,6 +86,14 @@
       "snapshots": {
         "name": "Snapshots"
       }
+    },
+    "light": {
+      "color_1": {
+        "name": "Color 1"
+      },
+      "color_2": {
+        "name": "Color 2"
+      }
     }
   }
 }
