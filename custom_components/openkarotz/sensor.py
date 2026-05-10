@@ -1,90 +1,221 @@
-from homeassistant.components.sensor import SensorEntity
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from homeassistant.components.sensor import (
+    SensorEntity,
+    SensorStateClass,
+)
+from homeassistant.helpers.entity import EntityCategory
+from homeassistant.helpers.update_coordinator import (
+    CoordinatorEntity,
+)
 
 from .const import DOMAIN
 
+MANUFACTURER = "Karotz"
+MODEL = "OpenKarotz"
+
+
 SENSORS = [
-    ("version", "Karotz Version", None),
-    ("karotz_percent_used_space", "Karotz Used Space", "%"),
-    ("led_color", "Karotz Led Color Raw", None),
-    ("led_pulse", "Karotz Led Pulse Raw", None),
-    ("wlan_mac", "Karotz WLAN MAC", None),
-    ("nb_tags", "Karotz Nb Tags", None),
-    ("nb_stories", "Karotz Nb Stories", None),
-    ("nb_sounds", "Karotz Nb Sounds", None),
-    ("nb_moods", "Karotz Nb Moods", None),
+    (
+        "version",
+        None,
+        EntityCategory.DIAGNOSTIC,
+        None,
+    ),
+    (
+        "karotz_percent_used_space",
+        "%",
+        EntityCategory.DIAGNOSTIC,
+        SensorStateClass.MEASUREMENT,
+    ),
+    (
+        "led_color",
+        None,
+        EntityCategory.DIAGNOSTIC,
+        None,
+    ),
+    (
+        "led_pulse",
+        None,
+        EntityCategory.DIAGNOSTIC,
+        None,
+    ),
+    (
+        "wlan_mac",
+        None,
+        EntityCategory.DIAGNOSTIC,
+        None,
+    ),
+    (
+        "nb_tags",
+        None,
+        None,
+        SensorStateClass.MEASUREMENT,
+    ),
+    (
+        "nb_stories",
+        None,
+        None,
+        SensorStateClass.MEASUREMENT,
+    ),
+    (
+        "nb_sounds",
+        None,
+        None,
+        SensorStateClass.MEASUREMENT,
+    ),
+    (
+        "nb_moods",
+        None,
+        None,
+        SensorStateClass.MEASUREMENT,
+    ),
 ]
 
-async def async_setup_entry(hass, entry, async_add_entities):
+
+async def async_setup_entry(
+    hass,
+    entry,
+    async_add_entities,
+):
     """Setup OpenKarotz sensors."""
-    coordinator = hass.data[DOMAIN][entry.entry_id]["coordinator"]
-    fast_coordinator = hass.data[DOMAIN][entry.entry_id]["fast_coordinator"]
 
-    entities = []
+    coordinator = hass.data[DOMAIN][entry.entry_id][
+        "coordinator"
+    ]
 
-    for key, name, unit in SENSORS:
-        entities.append(
-            KarotzStatusSensor(
-                coordinator,
-                key,
-                name,
-                unit,
-            )
+    fast_coordinator = hass.data[DOMAIN][entry.entry_id][
+        "fast_coordinator"
+    ]
+
+    entities = [
+        KarotzStatusSensor(
+            coordinator,
+            key,
+            unit,
+            entity_category,
+            state_class,
         )
+        for (
+            key,
+            unit,
+            entity_category,
+            state_class,
+        ) in SENSORS
+    ]
 
-    # Exemple sensor snapshots
     entities.append(
-        KarotzSnapshotCountSensor(fast_coordinator)
+        KarotzSnapshotCountSensor(
+            fast_coordinator
+        )
     )
 
     async_add_entities(entities)
 
-class KarotzStatusSensor(CoordinatorEntity, SensorEntity):
-    def __init__(self, coordinator, key, name, unit):
+
+class KarotzBaseSensor(
+    CoordinatorEntity,
+    SensorEntity,
+):
+    _attr_has_entity_name = True
+
+    device_id: str
+    device_name: str
+
+    def __init__(self, coordinator):
+        super().__init__(coordinator)
+
+    @property
+    def device_info(self):
+        return {
+            "identifiers": {
+                (DOMAIN, self.device_id)
+            },
+            "name": self.device_name,
+            "manufacturer": MANUFACTURER,
+            "model": MODEL,
+        }
+
+
+class KarotzStatusSensor(
+    KarotzBaseSensor,
+):
+
+    device_id = "karotz"
+    device_name = "OpenKarotz"
+
+    def __init__(
+        self,
+        coordinator,
+        key,
+        unit,
+        entity_category,
+        state_class,
+    ):
         super().__init__(coordinator)
 
         self.key = key
 
-        self._attr_name = name
-        self._attr_native_unit_of_measurement = unit
-        self._attr_unique_id = f"openkarotz_{key}"
+        self._attr_translation_key = key
+
+        self._attr_unique_id = (
+            f"openkarotz_{key}"
+        )
+
+        self._attr_native_unit_of_measurement = (
+            unit
+        )
+
+        self._attr_entity_category = (
+            entity_category
+        )
+
+        self._attr_state_class = (
+            state_class
+        )
 
     @property
     def native_value(self):
-        return self.coordinator.data["status"].get(self.key)
 
-    @property
-    def device_info(self):
-        return {
-            "identifiers": {
-                ("openkarotz", "karotz")
-            },
-            "name": "OpenKarotz",
-            "manufacturer": "Karotz",
-            "model": "OpenKarotz",
-        }
+        status = self.coordinator.data.get(
+            "status",
+            {},
+        )
 
-class KarotzSnapshotCountSensor(CoordinatorEntity, SensorEntity):
-    def __init__(self, fast_coordinator):
-        super().__init__(fast_coordinator)
+        return status.get(self.key)
 
-        self._attr_name = "Karotz Snapshots"
-        self._attr_unique_id = "openkarotz_snapshots"
+
+class KarotzSnapshotCountSensor(
+    KarotzBaseSensor,
+):
+
+    device_id = "karotz_picture"
+    device_name = "OpenKarotz Picture"
+
+    def __init__(self, coordinator):
+        super().__init__(coordinator)
+
+        self._attr_translation_key = (
+            "snapshots"
+        )
+
+        self._attr_unique_id = (
+            "openkarotz_snapshots"
+        )
+
+        self._attr_state_class = (
+            SensorStateClass.MEASUREMENT
+        )
 
     @property
     def native_value(self):
-        snapshots = self.coordinator.data["snapshots"].get(
-            "snapshots", []
+
+        snapshots = (
+            self.coordinator.data.get(
+                "snapshots",
+                {},
+            ).get(
+                "snapshots",
+                [],
+            )
         )
 
         return len(snapshots)
-    @property
-    def device_info(self):
-        return {
-            "identifiers": {
-                ("openkarotz", "karotz_picture")
-            },
-            "name": "OpenKarotz Picture",
-            "manufacturer": "Karotz",
-            "model": "OpenKarotz",
-        }

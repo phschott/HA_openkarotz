@@ -54,6 +54,38 @@
       "apply_leds": {
         "name": "Apply LEDs"
       }
+    },
+    "sensor": {
+      "version": {
+        "name": "Version"
+      },
+      "karotz_percent_used_space": {
+        "name": "Used Space"
+      },
+      "led_color": {
+        "name": "LED Color Raw"
+      },
+      "led_pulse": {
+        "name": "LED Pulse Raw"
+      },
+      "wlan_mac": {
+        "name": "WLAN MAC"
+      },
+      "nb_tags": {
+        "name": "Number of Tags"
+      },
+      "nb_stories": {
+        "name": "Number of Stories"
+      },
+      "nb_sounds": {
+        "name": "Number of Sounds"
+      },
+      "nb_moods": {
+        "name": "Number of Moods"
+      },
+      "snapshots": {
+        "name": "Snapshots"
+      }
     }
   }
 }
