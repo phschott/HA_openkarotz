@@ -1,6 +1,28 @@
-from homeassistant.components.text import TextEntity
+from homeassistant.components.text import (
+    TextEntity,
+)
+from homeassistant.helpers.restore_state import (
+    RestoreEntity,
+)
+from homeassistant.helpers.update_coordinator import (
+    CoordinatorEntity,
+)
 
 from .const import DOMAIN
+
+MANUFACTURER = "Karotz"
+MODEL = "OpenKarotz"
+
+
+TEXTS = [
+    (
+        "tts",
+        "karotz_sound",
+        "OpenKarotz Sound",
+        "mdi:text-box",
+        "",
+    ),
+]
 
 
 async def async_setup_entry(
@@ -12,30 +34,75 @@ async def async_setup_entry(
         "coordinator"
     ]
 
-    async_add_entities(
-        [
-            KarotzTTSText(coordinator),
-        ]
-    )
+    entities = [
+        KarotzText(
+            coordinator,
+            translation_key,
+            device_id,
+            device_name,
+            icon,
+            default_value,
+        )
+        for (
+            translation_key,
+            device_id,
+            device_name,
+            icon,
+            default_value,
+        ) in TEXTS
+    ]
+
+    async_add_entities(entities)
 
 
-class KarotzTTSText(TextEntity):
+class KarotzBaseText(
+    CoordinatorEntity,
+    RestoreEntity,
+    TextEntity,
+):
+    _attr_has_entity_name = True
 
-    def __init__(self, coordinator):
+    device_id: str
+    device_name: str
 
-        self.coordinator = coordinator
+    def __init__(
+        self,
+        coordinator,
+    ):
+        super().__init__(coordinator)
 
-        self._attr_name = "Karotz TTS"
+    @property
+    def device_info(self):
+        return {
+            "identifiers": {
+                (DOMAIN, self.device_id)
+            },
+            "name": self.device_name,
+            "manufacturer": MANUFACTURER,
+            "model": MODEL,
+        }
 
-        self._attr_unique_id = (
-            "openkarotz_tts"
+    async def async_added_to_hass(
+        self,
+    ):
+        await super().async_added_to_hass()
+
+        last_state = (
+            await self.async_get_last_state()
         )
 
-        self._attr_icon = (
-            "mdi:text-box"
-        )
-
-        self._attr_native_value = ""
+        if (
+            last_state is not None
+            and last_state.state
+            not in (
+                None,
+                "unknown",
+                "unavailable",
+            )
+        ):
+            self._attr_native_value = (
+                last_state.state
+            )
 
     async def async_set_value(
         self,
@@ -45,13 +112,35 @@ class KarotzTTSText(TextEntity):
 
         self.async_write_ha_state()
 
-    @property
-    def device_info(self):
-        return {
-            "identifiers": {
-                ("openkarotz", "karotz_sound")
-            },
-            "name": "OpenKarotz Sound",
-            "manufacturer": "Karotz",
-            "model": "OpenKarotz",
-        }
+
+class KarotzText(
+    KarotzBaseText,
+):
+
+    def __init__(
+        self,
+        coordinator,
+        translation_key,
+        device_id,
+        device_name,
+        icon,
+        default_value,
+    ):
+        super().__init__(coordinator)
+
+        self.device_id = device_id
+        self.device_name = device_name
+
+        self._attr_translation_key = (
+            translation_key
+        )
+
+        self._attr_unique_id = (
+            f"openkarotz_{translation_key}"
+        )
+
+        self._attr_icon = icon
+
+        self._attr_native_value = (
+            default_value
+        )

@@ -1,19 +1,43 @@
 {
+  "title": "OpenKarotz",
+
   "config": {
     "step": {
       "user": {
-        "title": "Connexion OpenKarotz",
-        "description": "Veuillez saisir l'adresse IP locale de votre OpenKarotz.",
+        "title": "Connexion à OpenKarotz",
+        "description": "Entrez l'adresse IP ou le nom d'hôte de votre OpenKarotz.",
         "data": {
-          "host": "Adresse IP / Hostname"
+          "host": "Adresse IP ou nom d'hôte"
+        }
+      }
+    },
+
+    "error": {
+      "cannot_connect": "Impossible de se connecter à OpenKarotz.",
+      "unknown": "Une erreur inattendue est survenue."
+    },
+
+    "abort": {
+      "already_configured": "Cet appareil OpenKarotz est déjà configuré."
+    }
+  },
+
+  "options": {
+    "step": {
+      "init": {
+        "title": "Options OpenKarotz",
+        "description": "Configurer les paramètres de l'intégration OpenKarotz.",
+        "data": {
+          "scan_interval": "Intervalle de mise à jour"
         }
       }
     }
   },
+
   "entity": {
     "button": {
       "reboot": {
-        "name": "Redémarrer!"
+        "name": "Redémarrer"
       },
       "wakeup": {
         "name": "Réveiller"
@@ -40,13 +64,13 @@
         "name": "Prendre une photo"
       },
       "clear_snapshots": {
-        "name": "Supprimer les photos"
+        "name": "Supprimer les snapshots"
       },
       "speak": {
         "name": "Parler"
       },
       "mood": {
-        "name": "Appliquer une humeur"
+        "name": "Appliquer une ambiance"
       },
       "move_ears": {
         "name": "Déplacer les oreilles"
@@ -55,6 +79,7 @@
         "name": "Appliquer les LEDs"
       }
     },
+
     "sensor": {
       "version": {
         "name": "Version"
@@ -87,6 +112,7 @@
         "name": "Snapshots"
       }
     },
+
     "light": {
       "color_1": {
         "name": "Couleur 1"
@@ -95,6 +121,7 @@
         "name": "Couleur 2"
       }
     },
+
     "number": {
       "ear_left": {
         "name": "Oreille gauche"
@@ -106,6 +133,7 @@
         "name": "Vitesse du pulse"
       }
     },
+
     "select": {
       "voice": {
         "name": "Voix"
@@ -116,16 +144,13 @@
       "radios": {
         "name": "Radios"
       }
-    },
-    "switch": {
-      "led_pulse": {
-        "name": "Pulse LEDs"
-      }
-    },
-    "text": {
-      "tts": {
-        "name": "Texte TTS"
-      }
+    }
+  },
+
+  "issues": {
+    "cannot_connect": {
+      "title": "Problème de connexion",
+      "description": "Impossible de communiquer avec l'appareil OpenKarotz."
     }
   }
 }

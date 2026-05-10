@@ -1,15 +1,39 @@
 {
+  "title": "OpenKarotz",
+
   "config": {
     "step": {
       "user": {
-        "title": "Connection to OpenKarotz",
-        "description": "Please enter local IP address or hostname of your OpenKarotz.",
+        "title": "Connect to OpenKarotz",
+        "description": "Enter the IP address or hostname of your OpenKarotz device.",
         "data": {
-          "host": "IP  Address / Hostname"
+          "host": "IP address or hostname"
+        }
+      }
+    },
+
+    "error": {
+      "cannot_connect": "Failed to connect to OpenKarotz.",
+      "unknown": "Unexpected error occurred."
+    },
+
+    "abort": {
+      "already_configured": "This OpenKarotz device is already configured."
+    }
+  },
+
+  "options": {
+    "step": {
+      "init": {
+        "title": "OpenKarotz options",
+        "description": "Configure OpenKarotz integration settings.",
+        "data": {
+          "scan_interval": "Update interval"
         }
       }
     }
   },
+
   "entity": {
     "button": {
       "reboot": {
@@ -55,6 +79,7 @@
         "name": "Apply LEDs"
       }
     },
+
     "sensor": {
       "version": {
         "name": "Version"
@@ -87,6 +112,7 @@
         "name": "Snapshots"
       }
     },
+
     "light": {
       "color_1": {
         "name": "Color 1"
@@ -95,6 +121,7 @@
         "name": "Color 2"
       }
     },
+
     "number": {
       "ear_left": {
         "name": "Left Ear"
@@ -106,6 +133,7 @@
         "name": "Pulse Speed"
       }
     },
+
     "select": {
       "voice": {
         "name": "Voice"
@@ -116,16 +144,13 @@
       "radios": {
         "name": "Radios"
       }
-    },
-    "switch": {
-      "led_pulse": {
-        "name": "LED Pulse"
-      }
-    },
-    "text": {
-      "tts": {
-        "name": "TTS"
-      }
+    }
+  },
+
+  "issues": {
+    "cannot_connect": {
+      "title": "Connection issue",
+      "description": "Unable to communicate with the OpenKarotz device."
     }
   }
 }
