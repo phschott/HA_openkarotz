@@ -144,6 +144,17 @@
       "radios": {
         "name": "Radios"
       }
+    },
+
+    "switch": {
+      "led_pulse": {
+        "name": "LED Pulse"
+      }
+    },
+    "text": {
+      "tts": {
+        "name": "TTS"
+      }
     }
   },
 
