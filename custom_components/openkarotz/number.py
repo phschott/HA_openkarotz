@@ -4,8 +4,51 @@ from homeassistant.components.number import (
 from homeassistant.helpers.restore_state import (
     RestoreEntity,
 )
+from homeassistant.helpers.update_coordinator import (
+    CoordinatorEntity,
+)
 
 from .const import DOMAIN
+
+MANUFACTURER = "Karotz"
+MODEL = "OpenKarotz"
+
+
+NUMBERS = [
+    (
+        "ear_left",
+        "karotz_ears",
+        "OpenKarotz Ears",
+        "mdi:rabbit",
+        0,
+        16,
+        1,
+        8,
+        "slider",
+    ),
+    (
+        "ear_right",
+        "karotz_ears",
+        "OpenKarotz Ears",
+        "mdi:rabbit",
+        0,
+        16,
+        1,
+        8,
+        "slider",
+    ),
+    (
+        "pulse_speed",
+        "karotz_leds",
+        "OpenKarotz LEDs",
+        "mdi:speedometer",
+        0,
+        2000,
+        1,
+        700,
+        "slider",
+    ),
+]
 
 
 async def async_setup_entry(
@@ -17,62 +60,58 @@ async def async_setup_entry(
         "coordinator"
     ]
 
-    async_add_entities(
-        [
-            KarotzEarNumber(
-                coordinator,
-                "left",
-                "Karotz Ear Left",
-                "openkarotz_ear_left",
-            ),
-            KarotzEarNumber(
-                coordinator,
-                "right",
-                "Karotz Ear Right",
-                "openkarotz_ear_right",
-            ),
-            KarotzPulseSpeedNumber(
-                coordinator,
-                "pulse",
-                "Karotz Pulse Speed",
-                "karotz_pulse_speed",
-            ),
-        ]
-    )
+    entities = [
+        KarotzNumber(
+            coordinator,
+            translation_key,
+            device_id,
+            device_name,
+            icon,
+            min_value,
+            max_value,
+            step,
+            default_value,
+            mode,
+        )
+        for (
+            translation_key,
+            device_id,
+            device_name,
+            icon,
+            min_value,
+            max_value,
+            step,
+            default_value,
+            mode,
+        ) in NUMBERS
+    ]
 
-class KarotzEarNumber(
+    async_add_entities(entities)
+
+
+class KarotzBaseNumber(
+    CoordinatorEntity,
     RestoreEntity,
     NumberEntity,
 ):
+    _attr_has_entity_name = True
 
-    def __init__(
-        self,
-        coordinator,
-        side,
-        name,
-        unique_id,
-    ):
-        self.coordinator = coordinator
+    device_id: str
+    device_name: str
 
-        self.side = side
+    def __init__(self, coordinator):
+        super().__init__(coordinator)
 
-        self._attr_name = name
-
-        self._attr_unique_id = unique_id
-
-        self._attr_icon = (
-            "mdi:rabbit"
-        )
-
-        self._attr_native_min_value = 0
-
-        self._attr_native_max_value = 16
-
-        self._attr_native_step = 1
-
-        self._attr_native_value = 8
-
-        self._attr_mode = "slider"
+    @property
+    def device_info(self):
+        return {
+            "identifiers": {
+                (DOMAIN, self.device_id)
+            },
+            "name": self.device_name,
+            "manufacturer": MANUFACTURER,
+            "model": MODEL,
+        }
 
     async def async_added_to_hass(
         self,
@@ -83,13 +122,19 @@ class KarotzEarNumber(
             await self.async_get_last_state()
         )
 
-        if last_state:
-            try:
-                self._attr_native_value = (
-                    float(last_state.state)
-                )
-            except Exception:
-                pass
+        if last_state is None:
+            return
+
+        try:
+            self._attr_native_value = (
+                float(last_state.state)
+            )
+
+        except (
+            ValueError,
+            TypeError,
+        ):
+            pass
 
     async def async_set_native_value(
         self,
@@ -99,63 +144,51 @@ class KarotzEarNumber(
 
         self.async_write_ha_state()
 
-    @property
-    def device_info(self):
-        return {
-            "identifiers": {
-                ("openkarotz", "karotz_ears")
-            },
-            "name": "OpenKarotz Ears",
-            "manufacturer": "Karotz",
-            "model": "OpenKarotz",
-        }
 
-class KarotzPulseSpeedNumber(
-    RestoreEntity,
-    NumberEntity,
+class KarotzNumber(
+    KarotzBaseNumber,
 ):
 
     def __init__(
         self,
         coordinator,
-        side,
-        name,
-        unique_id,
+        translation_key,
+        device_id,
+        device_name,
+        icon,
+        min_value,
+        max_value,
+        step,
+        default_value,
+        mode,
     ):
+        super().__init__(coordinator)
 
-        self.coordinator = coordinator
+        self.device_id = device_id
+        self.device_name = device_name
 
-        self._attr_name = name
-
-        self._attr_unique_id = unique_id
-
-        self._attr_icon = (
-            "mdi:speedometer"
+        self._attr_translation_key = (
+            translation_key
         )
 
-        self._attr_native_min_value = 0
+        self._attr_unique_id = (
+            f"openkarotz_{translation_key}"
+        )
 
-        self._attr_native_max_value = 2000
+        self._attr_icon = icon
 
-        self._attr_native_step = 1
+        self._attr_native_min_value = (
+            min_value
+        )
 
-        self._attr_native_value = 700
+        self._attr_native_max_value = (
+            max_value
+        )
 
-    async def async_set_native_value(
-        self,
-        value,
-    ):
-        self._attr_native_value = value
+        self._attr_native_step = step
 
-        self.async_write_ha_state()
+        self._attr_native_value = (
+            default_value
+        )
 
-    @property
-    def device_info(self):
-        return {
-            "identifiers": {
-                ("openkarotz", "karotz_leds")
-            },
-            "name": "OpenKarotz Leds",
-            "manufacturer": "Karotz",
-            "model": "OpenKarotz",
-        }
+        self._attr_mode = mode

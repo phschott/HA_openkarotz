@@ -94,6 +94,17 @@
       "color_2": {
         "name": "Couleur 2"
       }
+    },
+    "number": {
+      "ear_left": {
+        "name": "Oreille gauche"
+      },
+      "ear_right": {
+        "name": "Oreille droite"
+      },
+      "pulse_speed": {
+        "name": "Vitesse du pulse"
+      }
     }
   }
 }
