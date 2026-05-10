@@ -105,6 +105,17 @@
       "pulse_speed": {
         "name": "Vitesse du pulse"
       }
+    },
+    "select": {
+      "voice": {
+        "name": "Voix"
+      },
+      "mood": {
+        "name": "Ambiance"
+      },
+      "radios": {
+        "name": "Radios"
+      }
     }
   }
 }
