@@ -1,94 +1,243 @@
 from homeassistant.components.button import ButtonEntity
+from homeassistant.helpers.entity import EntityCategory
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
 
+MANUFACTURER = "Karotz"
+MODEL = "OpenKarotz"
+
+VOICE_ENTITY = "select.openkarotz_sound_karotz_voice"
+TEXT_ENTITY = "text.openkarotz_sound_karotz_tts"
+
+MOOD_ENTITY = "select.openkarotz_sound_karotz_mood"
+
+LEFT_EAR_ENTITY = "number.openkarotz_ears_karotz_ear_left"
+RIGHT_EAR_ENTITY = "number.openkarotz_ears_karotz_ear_right"
+
+LED_1_ENTITY = "light.openkarotz_leds_karotz_color_1"
+LED_2_ENTITY = "light.openkarotz_leds_karotz_color_2"
+
+LED_SPEED_ENTITY = "number.openkarotz_leds_karotz_pulse_speed"
+LED_PULSE_ENTITY = "switch.openkarotz_leds_karotz_led_pulse"
+
+
 BUTTONS = [
-    ("reboot", "Karotz Reboot", "mdi:restore", "karotz", "OpenKarotz"),
-    ("wakeup", "Karotz Wake Up", "mdi:weather-sunset-up", "karotz", "OpenKarotz"),
-    ("sleep", "Karotz Sleep", "mdi:power-sleep", "karotz", "OpenKarotz"),
-    ("ears_random", "Karotz Random Ears", "mdi:rabbit-variant-outline", "karotz_ears", "OpenKarotz Ears"),
-    ("ears_reset", "Karotz Reset Ears", "mdi:restore", "karotz_ears", "OpenKarotz Ears"),
-    ("led_off", "Karotz Turn Off LEDs", "mdi:lightbulb-off", "karotz_leds", "OpenKarotz LEDs"),
-    ("random_mood", "Karotz Random Moods", "mdi:emoticon-outline", "karotz_sound", "OpenKarotz Sound"),
-    ("clock", "Karotz Clock", "mdi:clock", "karotz_sound", "OpenKarotz Sound"),
-    ("snapshot", "Karotz Snapshot", "mdi:camera", "karotz_picture", "OpenKarotz Picture"),
-    ("clear_snapshots", "Karotz Clear Snapshots", "mdi:trash-can", "karotz_picture", "OpenKarotz Picture"),
+    (
+        "reboot",
+        "mdi:restore",
+        "karotz",
+        "OpenKarotz",
+        EntityCategory.CONFIG,
+    ),
+    (
+        "wakeup",
+        "mdi:weather-sunset-up",
+        "karotz",
+        "OpenKarotz",
+        None,
+    ),
+    (
+        "sleep",
+        "mdi:power-sleep",
+        "karotz",
+        "OpenKarotz",
+        None,
+    ),
+    (
+        "ears_random",
+        "mdi:rabbit-variant-outline",
+        "karotz_ears",
+        "OpenKarotz Ears",
+        None,
+    ),
+    (
+        "ears_reset",
+        "mdi:restore",
+        "karotz_ears",
+        "OpenKarotz Ears",
+        EntityCategory.CONFIG,
+    ),
+    (
+        "led_off",
+        "mdi:lightbulb-off",
+        "karotz_leds",
+        "OpenKarotz LEDs",
+        None,
+    ),
+    (
+        "random_mood",
+        "mdi:emoticon-outline",
+        "karotz_sound",
+        "OpenKarotz Sound",
+        None,
+    ),
+    (
+        "clock",
+        "mdi:clock",
+        "karotz_sound",
+        "OpenKarotz Sound",
+        None,
+    ),
+    (
+        "snapshot",
+        "mdi:camera",
+        "karotz_picture",
+        "OpenKarotz Picture",
+        None,
+    ),
+    (
+        "clear_snapshots",
+        "mdi:trash-can",
+        "karotz_picture",
+        "OpenKarotz Picture",
+        EntityCategory.CONFIG,
+    ),
 ]
+
 
 async def async_setup_entry(
     hass,
     entry,
     async_add_entities,
 ):
-    coordinator = hass.data[DOMAIN][entry.entry_id][
-        "coordinator"
-    ]
+    coordinator = hass.data[DOMAIN][entry.entry_id]["coordinator"]
 
     entities = [
-        KarotzButton(coordinator, method, name, icon, device_id, device_name)
-        for method, name, icon, device_id, device_name in BUTTONS
+        KarotzButton(
+            coordinator,
+            method,
+            icon,
+            device_id,
+            device_name,
+            entity_category,
+        )
+        for (
+            method,
+            icon,
+            device_id,
+            device_name,
+            entity_category,
+        ) in BUTTONS
     ]
 
-    # Ajouter ici les boutons spécifiques
-    entities.append(
-        KarotzSpeakButton(coordinator)
-    )
-    entities.append(
-        KarotzMoodButton(coordinator)
-    )
-
-    entities.append(
-        KarotzMoveEarsButton(coordinator)
-    )
-
-    entities.append(
-        KarotzApplyLedsButton(coordinator)
+    entities.extend(
+        [
+            KarotzSpeakButton(coordinator),
+            KarotzMoodButton(coordinator),
+            KarotzMoveEarsButton(coordinator),
+            KarotzApplyLedsButton(coordinator),
+        ]
     )
 
     async_add_entities(entities)
 
-class KarotzButton(ButtonEntity):
 
-    def __init__(self, coordinator, method, name, icon, device_id, device_name):
-        self.coordinator = coordinator
+class KarotzBaseButton(
+    CoordinatorEntity,
+    ButtonEntity,
+):
+    _attr_has_entity_name = True
+    device_id: str
+    device_name: str
+
+    def __init__(self, coordinator):
+        super().__init__(coordinator)
+
         self.api = coordinator.api
-
-        self.method = method
-
-        self._attr_name = name
-        self._attr_unique_id = f"openkarotz_{method}"
-        self._attr_icon = icon
-
-        self._device_id = device_id
-        self._device_name = device_name
-
-    async def async_press(self):
-        await getattr(self.api, self.method)()
+        self.hass = coordinator.hass
 
     @property
     def device_info(self):
         return {
             "identifiers": {
-                ("openkarotz", self._device_id)
+                (DOMAIN, self.device_id)
             },
-            "name": self._device_name,
-            "manufacturer": "Karotz",
-            "model": "OpenKarotz",
+            "name": self.device_name,
+            "manufacturer": MANUFACTURER,
+            "model": MODEL,
         }
 
-class KarotzSpeakButton(ButtonEntity):
+    def _get_state(self, entity_id):
+        return self.hass.states.get(entity_id)
+
+    def _get_int_state(
+        self,
+        entity_id,
+        default=0,
+    ):
+        state = self._get_state(entity_id)
+
+        if state is None:
+            return default
+
+        try:
+            return int(float(state.state))
+
+        except (ValueError, TypeError):
+            return default
+
+    @staticmethod
+    def _light_to_hex(state) -> str:
+
+        if state is None or state.state == "off":
+            return "000000"
+
+        rgb = state.attributes.get(
+            "rgb_color",
+            (0, 0, 0),
+        )
+
+        return "%02X%02X%02X" % rgb
+
+
+class KarotzButton(
+    KarotzBaseButton,
+):
+
+    def __init__(
+        self,
+        coordinator,
+        method,
+        icon,
+        device_id,
+        device_name,
+        entity_category=None,
+    ):
+        super().__init__(coordinator)
+
+        self.method = method
+
+        self.device_id = device_id
+        self.device_name = device_name
+
+        self._attr_translation_key = method
+        self._attr_unique_id = (
+            f"openkarotz_{method}"
+        )
+        self._attr_icon = icon
+        self._attr_entity_category = (
+            entity_category
+        )
+
+    async def async_press(self):
+        await getattr(
+            self.api,
+            self.method,
+        )()
+
+
+class KarotzSpeakButton(
+    KarotzBaseButton,
+):
+
+    device_id = "karotz_sound"
+    device_name = "OpenKarotz Sound"
 
     def __init__(self, coordinator):
+        super().__init__(coordinator)
 
-        self.coordinator = coordinator
-
-        self.api = coordinator.api
-
-        self.hass = coordinator.hass
-
-        self._attr_name = (
-            "Karotz Speak"
-        )
+        self._attr_translation_key = "speak"
 
         self._attr_unique_id = (
             "openkarotz_speak"
@@ -100,20 +249,12 @@ class KarotzSpeakButton(ButtonEntity):
 
     async def async_press(self):
 
-        voice_entity = (
-            "select.openkarotz_sound_karotz_voice"
+        voice = self._get_state(
+            VOICE_ENTITY
         )
 
-        text_entity = (
-            "text.openkarotz_sound_karotz_tts"
-        )
-
-        voice = self.hass.states.get(
-            voice_entity
-        )
-
-        text = self.hass.states.get(
-            text_entity
+        text = self._get_state(
+            TEXT_ENTITY
         )
 
         if not voice or not text:
@@ -128,29 +269,18 @@ class KarotzSpeakButton(ButtonEntity):
             text.state,
         )
 
-    @property
-    def device_info(self):
-        return {
-            "identifiers": {
-                ("openkarotz", "karotz_sound")
-            },
-            "name": "OpenKarotz Sound",
-            "manufacturer": "Karotz",
-            "model": "OpenKarotz",
-        }
-class KarotzMoodButton(ButtonEntity):
+
+class KarotzMoodButton(
+    KarotzBaseButton,
+):
+
+    device_id = "karotz_sound"
+    device_name = "OpenKarotz Sound"
 
     def __init__(self, coordinator):
+        super().__init__(coordinator)
 
-        self.coordinator = coordinator
-
-        self.api = coordinator.api
-
-        self.hass = coordinator.hass
-
-        self._attr_name = (
-            "Karotz Mood"
-        )
+        self._attr_translation_key = "mood"
 
         self._attr_unique_id = (
             "openkarotz_mood"
@@ -162,13 +292,12 @@ class KarotzMoodButton(ButtonEntity):
 
     async def async_press(self):
 
-        mood_entity = (
-            "select.openkarotz_sound_karotz_mood"
+        mood = self._get_state(
+            MOOD_ENTITY
         )
 
-        mood = self.hass.states.get(
-            mood_entity
-        )
+        if mood is None:
+            return
 
         mood_id = (
             mood.state.split("-")[0].strip()
@@ -178,32 +307,18 @@ class KarotzMoodButton(ButtonEntity):
             mood_id,
         )
 
-    @property
-    def device_info(self):
-        return {
-            "identifiers": {
-                ("openkarotz", "karotz_sound")
-            },
-            "name": "OpenKarotz Sound",
-            "manufacturer": "Karotz",
-            "model": "OpenKarotz",
-        }
 
 class KarotzMoveEarsButton(
-    ButtonEntity,
+    KarotzBaseButton,
 ):
 
+    device_id = "karotz_ears"
+    device_name = "OpenKarotz Ears"
+
     def __init__(self, coordinator):
+        super().__init__(coordinator)
 
-        self.coordinator = coordinator
-
-        self.api = coordinator.api
-
-        self.hass = coordinator.hass
-
-        self._attr_name = (
-            "Karotz Move Ears"
-        )
+        self._attr_translation_key = "move_ears"
 
         self._attr_unique_id = (
             "openkarotz_move_ears"
@@ -215,123 +330,77 @@ class KarotzMoveEarsButton(
 
     async def async_press(self):
 
-        left = self.hass.states.get(
-            "number.openkarotz_ears_karotz_ear_left"
+        left = self._get_int_state(
+            LEFT_EAR_ENTITY
         )
 
-        right = self.hass.states.get(
-            "number.openkarotz_ears_karotz_ear_right"
+        right = self._get_int_state(
+            RIGHT_EAR_ENTITY
         )
-
-        if left is None or right is None:
-            return
 
         await self.api.ears(
-            int(float(left.state)),
-            int(float(right.state)),
+            left,
+            right,
         )
 
-    @property
-    def device_info(self):
-        return {
-            "identifiers": {
-                ("openkarotz", "karotz_ears")
-            },
-            "name": "OpenKarotz Ears",
-            "manufacturer": "Karotz",
-            "model": "OpenKarotz",
-        }
 
 class KarotzApplyLedsButton(
-    ButtonEntity,
+    KarotzBaseButton,
 ):
 
+    device_id = "karotz_leds"
+    device_name = "OpenKarotz LEDs"
+
     def __init__(self, coordinator):
+        super().__init__(coordinator)
 
-        self.coordinator = coordinator
-
-        self.api = coordinator.api
-
-        self.hass = coordinator.hass
-
-        self._attr_name = (
-            "Karotz Apply LEDs"
-        )
+        self._attr_translation_key = "apply_leds"
 
         self._attr_unique_id = (
             "openkarotz_apply_leds"
         )
 
         self._attr_icon = (
-            "mdi:led-strip"
+            "mdi:lightbulb-on"
         )
 
     async def async_press(self):
 
-        color1 = self.hass.states.get(
-            "light.openkarotz_leds_karotz_color_1"
+        color1 = self._get_state(
+            LED_1_ENTITY
         )
 
-        color2 = self.hass.states.get(
-            "light.openkarotz_leds_karotz_color_2"
+        color2 = self._get_state(
+            LED_2_ENTITY
         )
 
-        speed = self.hass.states.get(
-            "number.openkarotz_leds_karotz_pulse_speed"
+        speed = self._get_int_state(
+            LED_SPEED_ENTITY,
+            0,
         )
 
-        pulse = self.hass.states.get(
-            "switch.openkarotz_leds_karotz_led_pulse"
+        pulse = self._get_state(
+            LED_PULSE_ENTITY
         )
 
-        pulse_value = 1
+        pulse_value = (
+            0
+            if pulse
+            and pulse.state == "off"
+            else 1
+        )
 
-        if pulse and pulse.state == "off":
-            pulse_value = 0
+        hex1 = self._light_to_hex(
+            color1
+        )
 
-        if (
-            color1 is None
-            or color2 is None
-            or speed is None
-        ):
-            return
-
-        if color1.state == "off":
-            hex1 = "000000"
-
-        else:
-            rgb1 = color1.attributes.get(
-                "rgb_color",
-                (0, 255, 0),
-            )
-
-            hex1 = "%02X%02X%02X" % rgb1
-
-        if color2.state == "off":
-            hex2 = "000000"
-
-        else:
-            rgb2 = color2.attributes.get(
-                "rgb_color",
-                (0, 0, 0),
-            )
-
-            hex2 = "%02X%02X%02X" % rgb2
+        hex2 = self._light_to_hex(
+            color2
+        )
 
         await self.api.leds(
             pulse_value,
             hex1,
-            int(float(speed.state)),
+            speed,
             hex2,
         )
-
-    @property
-    def device_info(self):
-        return {
-            "identifiers": {
-                ("openkarotz", "karotz_leds")
-            },
-            "name": "OpenKarotz Leds",
-            "manufacturer": "Karotz",
-            "model": "OpenKarotz",
-        }

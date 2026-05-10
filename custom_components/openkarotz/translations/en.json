@@ -9,5 +9,51 @@
         }
       }
     }
+  },
+  "entity": {
+    "button": {
+      "reboot": {
+        "name": "Reboot"
+      },
+      "wakeup": {
+        "name": "Wake Up"
+      },
+      "sleep": {
+        "name": "Sleep"
+      },
+      "ears_random": {
+        "name": "Random Ears"
+      },
+      "ears_reset": {
+        "name": "Reset Ears"
+      },
+      "led_off": {
+        "name": "Turn Off LEDs"
+      },
+      "random_mood": {
+        "name": "Random Mood"
+      },
+      "clock": {
+        "name": "Clock"
+      },
+      "snapshot": {
+        "name": "Take Snapshot"
+      },
+      "clear_snapshots": {
+        "name": "Clear Snapshots"
+      },
+      "speak": {
+        "name": "Speak"
+      },
+      "mood": {
+        "name": "Apply Mood"
+      },
+      "move_ears": {
+        "name": "Move Ears"
+      },
+      "apply_leds": {
+        "name": "Apply LEDs"
+      }
+    }
   }
 }
