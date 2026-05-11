@@ -52,6 +52,10 @@ async def async_setup_entry(
         "coordinator"
     ]
 
+    fast_coordinator = hass.data[DOMAIN][entry.entry_id][
+        "fast_coordinator"
+    ]
+
     entities = [
         KarotzSelect(
             coordinator,
@@ -69,6 +73,12 @@ async def async_setup_entry(
             icon,
         ) in SELECTS
     ]
+
+    entities.append(
+        OpenKarotzSnapshotSelect(
+            fast_coordinator,
+        )
+    )
 
     async_add_entities(entities)
 
@@ -245,3 +255,98 @@ class KarotzSelect(
         self._attr_current_option = option
 
         self.async_write_ha_state()
+
+class OpenKarotzSnapshotSelect(
+    KarotzBaseSelect,
+):
+    device_id = "karotz_picture"
+    device_name = "OpenKarotz Picture"
+
+    def __init__(self, coordinator):
+        super().__init__(coordinator)
+
+        self.entity_id = (
+            "select.openkarotz_snapshots"
+        )
+
+        self._attr_translation_key = (
+            "snapshots"
+        )
+
+        self._attr_unique_id = (
+            "openkarotz_snapshots"
+        )
+
+        self._attr_icon = "mdi:camera"
+
+    @property
+    def device_info(self):
+        """Return device info."""
+
+        return {
+            "identifiers": {
+                (DOMAIN, self.device_id)
+            },
+            "name": self.device_name,
+            "manufacturer": MANUFACTURER,
+            "model": MODEL,
+        }
+    
+    @property
+    def options(self):
+
+        options = [
+            snap["id"]
+            for snap in self.coordinator.data
+                .get("snapshots", {})
+                .get("snapshots", [])
+            if "id" in snap
+        ]
+
+        self._attr_options = options
+
+        return options
+
+    @property
+    def current_option(self):
+
+        if (
+            self._attr_current_option
+            not in self.options
+        ):
+            if self.options:
+                self._attr_current_option = (
+                    self.options[0]
+                )
+
+        return self._attr_current_option
+
+    async def async_select_option(
+        self,
+        option,
+    ):
+        self._attr_current_option = option
+
+        self.async_write_ha_state()
+
+    @property
+    def extra_state_attributes(self):
+
+        if not self._attr_current_option:
+            return {}
+
+        filename = self._attr_current_option.replace(
+            "snapshot_",
+            "",
+        )
+        #/cgi-bin/snapshot_get?filename=snapshot_2026_05_10_16_44_24.jpg
+        # http://192.168.1.170/cgi-bin/snapshot_get?filename=2026_05_10_19_08_04.jpg
+        # http://192.168.1.170/cgi-bin/snapshot_get?filename=snapshot_2026_05_10_16_44_24.jpg
+
+        return {
+            "snapshot_url":
+                f"http://{self.api.host}"
+                #f"http://karotz.schott.io:8080"
+                f"/cgi-bin/snapshot_get"
+                f"?filename=snapshot_{filename}"
+        }
