@@ -339,9 +339,6 @@ class OpenKarotzSnapshotSelect(
             "snapshot_",
             "",
         )
-        #/cgi-bin/snapshot_get?filename=snapshot_2026_05_10_16_44_24.jpg
-        # http://192.168.1.170/cgi-bin/snapshot_get?filename=2026_05_10_19_08_04.jpg
-        # http://192.168.1.170/cgi-bin/snapshot_get?filename=snapshot_2026_05_10_16_44_24.jpg
 
         return {
             "snapshot_url":
