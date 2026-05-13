@@ -56,13 +56,20 @@ class KarotzSnapshotImage(CoordinatorEntity, ImageEntity):
         self._api = api
         self._snapshot = snapshot
 
+        # Extract filename from snapshot object
+        # snapshot can be either a string or dict with 'filename' key
+        if isinstance(snapshot, dict):
+            filename = snapshot.get("filename", str(snapshot))
+        else:
+            filename = snapshot
+
         # Create safe name from filename
-        safe_name = snapshot.replace("/", "_").replace(".jpg", "")
+        safe_name = filename.replace("/", "_").replace(".jpg", "")
         self._attr_translation_key = "snapshot"
         self._attr_unique_id = f"openkarotz_snapshot_{safe_name}"
         self._attr_name = f"Snapshot {safe_name}"
 
-        _LOGGER.debug("Created image entity for snapshot: %s", snapshot)
+        _LOGGER.debug("Created image entity for snapshot: %s", filename)
 
     @property
     def device_info(self):
@@ -76,7 +83,13 @@ class KarotzSnapshotImage(CoordinatorEntity, ImageEntity):
     async def async_image(self):
         """Return image data."""
         try:
-            return await self._api.snapshot_get(self._snapshot)
+            # Extract filename from snapshot object if needed
+            if isinstance(self._snapshot, dict):
+                filename = self._snapshot.get("filename", str(self._snapshot))
+            else:
+                filename = self._snapshot
+
+            return await self._api.snapshot_get(filename)
         except Exception as err:
             _LOGGER.error(
                 "Failed to get snapshot image %s: %s",
