@@ -10,6 +10,12 @@ class KarotzAPI:
         async with aiohttp.ClientSession() as session, session.get(url) as resp:
             return await resp.json(content_type=None)
 
+    async def _get_binary(self, path):
+        """Get binary data from API endpoint."""
+        url = f"http://{self.host}{path}"
+        async with aiohttp.ClientSession() as session, session.get(url) as resp:
+            return await resp.read()
+
     # =====================
     # STATUS / POWER
     # =====================
@@ -97,3 +103,7 @@ class KarotzAPI:
 
     async def get_snapshots(self):
         return await self._get("/cgi-bin/snapshot_list")
+
+    async def snapshot_get(self, filename):
+        """Get snapshot image by filename."""
+        return await self._get_binary(f"/cgi-bin/snapshot_get?filename={filename}")

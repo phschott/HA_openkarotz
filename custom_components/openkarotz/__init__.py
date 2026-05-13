@@ -6,7 +6,7 @@ from .const import DOMAIN
 from .coordinator import KarotzCoordinator
 from .coordinator import MyFastCoordinator
 
-PLATFORMS = ["sensor", "button", "select", "text", "number", "light", "switch"]
+PLATFORMS = ["sensor", "button", "select", "text", "number", "light", "switch", "image"]
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     api = KarotzAPI(entry.data["host"])
