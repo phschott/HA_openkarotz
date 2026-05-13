@@ -17,22 +17,24 @@ async def async_setup_entry(
 ):
     """Setup OpenKarotz image entities."""
 
-    coordinator = hass.data[DOMAIN][entry.entry_id]["coordinator"]
+    fast_coordinator = hass.data[DOMAIN][entry.entry_id]["fast_coordinator"]
     api = hass.data[DOMAIN][entry.entry_id]["api"]
 
     entities = []
 
-    # Get snapshots from coordinator data
+    # Get snapshots from fast_coordinator data
     snapshots = (
-        coordinator.data.get("snapshots", {})
+        fast_coordinator.data.get("snapshots", {})
         .get("snapshots", [])
     )
+
+    _LOGGER.debug("Setting up image entities for %d snapshots", len(snapshots))
 
     # Create an image entity for each snapshot
     for snapshot in snapshots:
         entities.append(
             KarotzSnapshotImage(
-                coordinator,
+                fast_coordinator,
                 api,
                 snapshot,
             )
@@ -59,6 +61,8 @@ class KarotzSnapshotImage(CoordinatorEntity, ImageEntity):
         self._attr_translation_key = "snapshot"
         self._attr_unique_id = f"openkarotz_snapshot_{safe_name}"
         self._attr_name = f"Snapshot {safe_name}"
+
+        _LOGGER.debug("Created image entity for snapshot: %s", snapshot)
 
     @property
     def device_info(self):
