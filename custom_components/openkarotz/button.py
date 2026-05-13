@@ -1,8 +1,13 @@
+import logging
+import aiohttp
+
 from homeassistant.components.button import ButtonEntity
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
+
+_LOGGER = logging.getLogger(__name__)
 
 MANUFACTURER = "Karotz"
 MODEL = "OpenKarotz"
@@ -221,11 +226,15 @@ class KarotzButton(
         )
 
     async def async_press(self):
-        await getattr(
-            self.api,
-            self.method,
-        )()
-
+        try:
+            await getattr(
+                self.api,
+                self.method,
+            )()
+        except aiohttp.ClientResponseError as err:
+            # L'API a bien exécuté l'action malgré le header invalide
+            _LOGGER.debug("Snapshot pris malgré header invalide (réponse DBus OpenKarotz): %s", err)
+            return None
 
 class KarotzSpeakButton(
     KarotzBaseButton,
