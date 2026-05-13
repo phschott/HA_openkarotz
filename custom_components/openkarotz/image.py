@@ -55,7 +55,6 @@ class KarotzSnapshotImage(CoordinatorEntity, ImageEntity):
         super().__init__(coordinator)
         self._api = api
         self._snapshot = snapshot
-        self.access_tokens = []
 
         # Extract filename from snapshot object
         # snapshot can be either a string or dict with 'filename' key
@@ -80,6 +79,11 @@ class KarotzSnapshotImage(CoordinatorEntity, ImageEntity):
             "manufacturer": MANUFACTURER,
             "model": MODEL,
         }
+
+    @property
+    def state_attributes(self):
+        """Return state attributes (empty to avoid access_token errors)."""
+        return {}
 
     async def async_image(self):
         """Return image data."""
