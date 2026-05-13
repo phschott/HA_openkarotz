@@ -55,6 +55,7 @@ class KarotzSnapshotImage(CoordinatorEntity, ImageEntity):
         super().__init__(coordinator)
         self._api = api
         self._snapshot = snapshot
+        self.access_tokens = []
 
         # Extract filename from snapshot object
         # snapshot can be either a string or dict with 'filename' key
