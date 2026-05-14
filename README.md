@@ -22,7 +22,7 @@ Please make sure you have installed OpenKarotz on Free Rabbits OS, as we are usi
 ## Upcoming features
 - Multi-language (partial)
 - Manage TTS cache
-- Display snapshots
+- Display snapshots (partial)
 - Webcam (Using */cgi-bin/webcam* api)
 - Radios (Using */cgi-bin/sound?url={karotzStreamUrl}* and */cgi-bin/sound_control?cmd={cmd}* apis)
 - Disable ears
@@ -47,6 +47,10 @@ Please make sure you have installed OpenKarotz on Free Rabbits OS, as we are usi
 
 ## Configuration
 Just enter IP or hostname or your Karrotz. Done!
+
+## Karotz Camera
+Use standard "MJPEG IP Camera" integration and use URL MJPEG: http://{karotz_IP}/cgi-bin/webcam
+You can also configure still image: http://{karotz_IP}/cgi-bin/snapshot_view?silent=1
 
 ## Known issues
 - Default light color and pulse is not synced from status
