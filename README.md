@@ -50,3 +50,7 @@ Just enter IP or hostname or your Karrotz. Done!
 
 ## Known issues
 - Default light color and pulse is not synced from status
+
+# Recommanded link
+[Free Rabbits](https://www.freerabbits.nl)
+[Nabaztag/Karotz Documentation](https://docs.nabaztag.com)
