@@ -59,17 +59,17 @@ class KarotzSnapshotImage(CoordinatorEntity, ImageEntity):
         # Extract filename from snapshot object
         # snapshot can be either a string or dict with 'filename' key
         if isinstance(snapshot, dict):
-            filename = snapshot.get("filename", str(snapshot))
+            self._filename = snapshot.get("filename", str(snapshot))
         else:
-            filename = snapshot
+            self._filename = snapshot
 
         # Create safe name from filename
-        safe_name = filename.replace("/", "_").replace(".jpg", "")
+        safe_name = self._filename.replace("/", "_").replace(".jpg", "")
         self._attr_translation_key = "snapshot"
         self._attr_unique_id = f"openkarotz_snapshot_{safe_name}"
         self._attr_name = f"Snapshot {safe_name}"
 
-        _LOGGER.debug("Created image entity for snapshot: %s", filename)
+        _LOGGER.debug("Created image entity for snapshot: %s", self._filename)
 
     @property
     def device_info(self):
@@ -85,20 +85,8 @@ class KarotzSnapshotImage(CoordinatorEntity, ImageEntity):
         """Return state attributes (empty to avoid access_token errors)."""
         return {}
 
-    async def async_image(self):
-        """Return image data."""
-        try:
-            # Extract filename from snapshot object if needed
-            if isinstance(self._snapshot, dict):
-                filename = self._snapshot.get("filename", str(self._snapshot))
-            else:
-                filename = self._snapshot
-
-            return await self._api.snapshot_get(filename)
-        except Exception as err:
-            _LOGGER.error(
-                "Failed to get snapshot image %s: %s",
-                self._snapshot,
-                err,
-            )
-            return None
+    @property
+    def image_url(self):
+        """Return the URL of the image."""
+        host = self._api.host
+        return f"http://{host}/cgi-bin/snapshot_get?filename={self._filename}"
