@@ -1,3 +1,5 @@
 DOMAIN = "openkarotz"
 MANUFACTURER = "Karotz"
 MODEL = "OpenKarotz"
+FILENAME = "lastKarotz.jpg"
+DEFAULT_NAME = "Last Picture"

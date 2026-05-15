@@ -2,7 +2,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
 from .api import KarotzAPI
-from .const import DOMAIN
+from .const import DOMAIN, FILENAME
 from .coordinator import KarotzCoordinator
 from .coordinator import MyFastCoordinator
 
@@ -12,6 +12,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     api = KarotzAPI(entry.data["host"])
     coordinator = KarotzCoordinator(hass, api)
     fast_coordinator = MyFastCoordinator(hass, api)
+    image_path = hass.config.path(f"www/{FILENAME}")
 
     await fast_coordinator.async_config_entry_first_refresh()
     await coordinator.async_config_entry_first_refresh()
@@ -21,6 +22,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
         "api": api,
         "coordinator": coordinator,
         "fast_coordinator": fast_coordinator,
+        "image_path": image_path,
     }
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
