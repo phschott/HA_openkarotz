@@ -15,7 +15,7 @@ from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
 from homeassistant.util import dt as dt_util
 
 from .const import FILENAME, DEFAULT_NAME, DOMAIN
-from .image_entity import FingerporiImage
+from .image_entity import KarotzImage
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -68,18 +68,18 @@ async def async_setup_entry(
                 if data:
                     # Write file on executor to avoid blocking the event loop
                     await hass.async_add_executor_job(_write_bytes, image_path, data)
-                    _LOGGER.info("Downloaded Fingerpori comic from feed: %s", img_url)
+                    _LOGGER.info("Downloaded Karotz image: %s", img_url)
                     return data
                 else:
                     _LOGGER.info("Keeping existing image file (download failed).")
         except Exception as e:
-            _LOGGER.error("Failed to download Fingerpori comic: %s", e)
+            _LOGGER.error("Failed to download Karotz image: %s", e)
         return None
 
     coordinator = DataUpdateCoordinator(
         hass,
         _LOGGER,
-        name="fingerpori_image",
+        name="karotz_image",
         update_method=update_image,
         update_interval=timedelta(seconds=10),  # fallback for platform setup
     )
@@ -88,4 +88,4 @@ async def async_setup_entry(
     # When created from platform (legacy) we can't tie to a config entry;
     # use None for config_entry_id so unique_id is based on feed filename.
     _LOGGER.warning("Path: %s", image_path)
-    async_add_entities([FingerporiImage(hass, coordinator, image_path, None, DEFAULT_NAME)])
+    async_add_entities([KarotzImage(hass, coordinator, image_path, None, DEFAULT_NAME)])
