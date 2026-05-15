@@ -3,8 +3,7 @@ from homeassistant.core import HomeAssistant
 
 from .api import KarotzAPI
 from .const import DOMAIN, FILENAME
-from .coordinator import KarotzCoordinator
-from .coordinator import MyFastCoordinator
+from .coordinator import KarotzCoordinator, MyFastCoordinator
 
 PLATFORMS = ["sensor", "button", "select", "text", "number", "light", "switch", "image"]
 

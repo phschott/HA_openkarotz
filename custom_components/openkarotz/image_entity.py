@@ -1,12 +1,14 @@
 import logging
-import uuid
 import os
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
+import uuid
+from datetime import datetime
+
 from homeassistant.components.image import ImageEntity
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.util import dt as dt_util
-from datetime import datetime
-from .const import DOMAIN, DEFAULT_NAME, MODEL, MANUFACTURER
+
+from .const import DEFAULT_NAME, DOMAIN, MANUFACTURER, MODEL
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -105,7 +107,8 @@ class KarotzImage(CoordinatorEntity, ImageEntity):
 
     @property
     def state(self) -> datetime | None:
-        """Return the entity state.
+        """
+        Return the entity state.
 
         Return the full publication datetime from the RSS feed.
         Home Assistant will format it according to user's locale.

@@ -77,7 +77,6 @@ async def async_setup_entry(
     async_add_entities,
 ):
     """Setup OpenKarotz sensors."""
-
     coordinator = hass.data[DOMAIN][entry.entry_id][
         "coordinator"
     ]

@@ -1,17 +1,16 @@
+import asyncio
 import logging
 import os
-import asyncio
 import socket
-from datetime import timedelta
+
 import aiohttp
-
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.core import HomeAssistant, callback
-from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.event import async_track_state_change_event
+from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
-from .const import FILENAME, DEFAULT_NAME, SNAPSHOT_SELECT_ENTITY, SNAPSHOT_URL_TEMPLATE
+from .const import DEFAULT_NAME, FILENAME, SNAPSHOT_SELECT_ENTITY, SNAPSHOT_URL_TEMPLATE
 from .image_entity import KarotzImage
 
 _LOGGER = logging.getLogger(__name__)
@@ -33,7 +32,8 @@ async def async_setup_entry(
     os.makedirs(os.path.dirname(image_path), exist_ok=True)
 
     async def update_image():
-        """Télécharge le snapshot sélectionné dans select.openkarotz_snapshots.
+        """
+        Télécharge le snapshot sélectionné dans select.openkarotz_snapshots.
 
         Appelé soit au démarrage, soit à chaque changement du select.
         Si le select n'est pas encore disponible ou si le téléchargement échoue,
@@ -69,13 +69,12 @@ async def async_setup_entry(
                             if resp.status == 200:
                                 data = await resp.read()
                                 break
-                            else:
-                                _LOGGER.warning(
-                                    "Échec téléchargement (tentative %s) : HTTP %s",
-                                    attempt, resp.status,
-                                )
-                                raise aiohttp.ClientError(f"HTTP {resp.status}")
-                    except (aiohttp.ClientError, asyncio.TimeoutError, socket.gaierror) as err:
+                            _LOGGER.warning(
+                                "Échec téléchargement (tentative %s) : HTTP %s",
+                                attempt, resp.status,
+                            )
+                            raise aiohttp.ClientError(f"HTTP {resp.status}")
+                    except (TimeoutError, aiohttp.ClientError, socket.gaierror) as err:
                         _LOGGER.debug("Tentative %s échouée : %s", attempt, err)
                         if attempt < max_retries:
                             await asyncio.sleep(2 ** (attempt - 1))
@@ -89,8 +88,7 @@ async def async_setup_entry(
                     await hass.async_add_executor_job(_write_bytes, image_path, data)
                     _LOGGER.info("Snapshot téléchargé : %s", img_url)
                     return data
-                else:
-                    _LOGGER.info("Fichier image conservé (téléchargement échoué).")
+                _LOGGER.info("Fichier image conservé (téléchargement échoué).")
 
         except Exception as e:
             _LOGGER.error("Erreur lors du téléchargement de l'image Karotz : %s", e)

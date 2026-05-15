@@ -1,6 +1,6 @@
 import logging
-import aiohttp
 
+import aiohttp
 from homeassistant.components.button import ButtonEntity
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -234,7 +234,7 @@ class KarotzButton(
         except aiohttp.ClientResponseError as err:
             # L'API a bien exécuté l'action malgré le header invalide
             _LOGGER.debug("Snapshot pris malgré header invalide (réponse DBus OpenKarotz): %s", err)
-            return None
+            return
 
 class KarotzSpeakButton(
     KarotzBaseButton,

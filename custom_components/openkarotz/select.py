@@ -47,7 +47,6 @@ async def async_setup_entry(
     async_add_entities,
 ):
     """Setup OpenKarotz select entities."""
-
     coordinator = hass.data[DOMAIN][entry.entry_id][
         "coordinator"
     ]
@@ -110,7 +109,6 @@ class KarotzBaseSelect(
     @property
     def device_info(self):
         """Return device info."""
-
         return {
             "identifiers": {
                 (DOMAIN, self.device_id)
@@ -124,7 +122,6 @@ class KarotzBaseSelect(
         self,
     ):
         """Restore previous state."""
-
         await super().async_added_to_hass()
 
         last_state = (
@@ -148,7 +145,6 @@ class KarotzBaseSelect(
     @property
     def available(self):
         """Return availability."""
-
         return (
             self.coordinator.last_update_success
         )
@@ -175,7 +171,7 @@ class KarotzSelect(
         self.options_key = options_key
 
         self.option_label = option_label
-        
+
         self.entity_id = (
             f"select.openkarotz_{translation_key}"
         )
@@ -193,7 +189,6 @@ class KarotzSelect(
     @property
     def options(self):
         """Return available options."""
-
         data = self.coordinator.data.get(
             self.data_key,
             {},
@@ -231,7 +226,6 @@ class KarotzSelect(
     @property
     def current_option(self):
         """Return selected option."""
-
         if (
             self._attr_current_option
             not in self.options
@@ -248,7 +242,6 @@ class KarotzSelect(
         option,
     ):
         """Handle selection."""
-
         if option not in self.options:
             return
 
@@ -282,7 +275,6 @@ class OpenKarotzSnapshotSelect(
     @property
     def device_info(self):
         """Return device info."""
-
         return {
             "identifiers": {
                 (DOMAIN, self.device_id)
@@ -291,7 +283,7 @@ class OpenKarotzSnapshotSelect(
             "manufacturer": MANUFACTURER,
             "model": MODEL,
         }
-    
+
     @property
     def options(self):
 
