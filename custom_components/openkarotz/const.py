@@ -1,8 +1,8 @@
 DOMAIN = "openkarotz"
 MANUFACTURER = "Karotz"
 MODEL = "OpenKarotz"
-FILENAME = "lastKarotz.jpg"
-DEFAULT_NAME = "Last Picture"
+FILENAME = "SelectedKarotzPicture.jpg"
+DEFAULT_NAME = "OpenKarotz Picture"
 # --- Snapshot image integration ---
  
 # Entity ID du select qui liste les snapshots disponibles sur le Karotz

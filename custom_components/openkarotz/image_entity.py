@@ -34,6 +34,7 @@ class KarotzImage(CoordinatorEntity, ImageEntity):
             self._unique_id = f"{DOMAIN}_{os.path.basename(self._path)}"
 
         self._name = name or DEFAULT_NAME
+        self.device_id = "karotz_picture"
         # Timestamp when the image was last refreshed (timezone-aware UTC datetime)
         self._last_refreshed: datetime | None = None
         # Publication date of the comic (datetime object from RSS feed)
@@ -143,9 +144,9 @@ class KarotzImage(CoordinatorEntity, ImageEntity):
     @property
     def device_info(self):
         """Return device information to group entities together."""
-        if self._config_entry_id:
+        if self._unique_id:
             return {
-                "identifiers": {(DOMAIN, self._config_entry_id)},
+                "identifiers": {(DOMAIN, self.device_id)},
                 "name": self._name,
                 "manufacturer": MANUFACTURER,
                 "model": MODEL,
