@@ -114,7 +114,6 @@ async def async_setup_entry(hass, entry, async_add_entities):
         [
             KarotzSpeakButton(coordinator),
             KarotzMoodButton(coordinator),
-            KarotzMoveEarsButton(coordinator),
             KarotzApplyLedsButton(coordinator),
         ]
     )
@@ -263,32 +262,6 @@ class KarotzMoodButton(KarotzBaseButton):
             _LOGGER.debug("Playing mood %s", mood_id)
         except Exception as err:
             _LOGGER.error("Failed to play mood: %s", err)
-
-
-class KarotzMoveEarsButton(KarotzBaseButton):
-    """Button to move ears to selected positions."""
-
-    device_id = DEVICE_EARS
-    device_name = "OpenKarotz Ears"
-
-    def __init__(self, coordinator):
-        """Initialize move ears button."""
-        super().__init__(coordinator)
-        self._attr_translation_key = "move_ears"
-        self._attr_unique_id = "openkarotz_move_ears"
-        self._attr_icon = "mdi:rabbit"
-
-    async def async_press(self) -> None:
-        """Move ears to selected positions."""
-        left = self._get_int_state(ENTITY_EAR_LEFT)
-        right = self._get_int_state(ENTITY_EAR_RIGHT)
-
-        try:
-            await self.api.ears(left, right)
-            _LOGGER.debug("Ears moved to left=%s, right=%s", left, right)
-        except Exception as err:
-            _LOGGER.error("Failed to move ears: %s", err)
-
 
 class KarotzApplyLedsButton(KarotzBaseButton):
     """Button to apply LED color and animation settings."""
