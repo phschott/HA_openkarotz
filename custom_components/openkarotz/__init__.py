@@ -1,21 +1,29 @@
+"""OpenKarotz integration for Home Assistant."""
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
 from .api import KarotzAPI
-from .const import DOMAIN, FILENAME
-from .coordinator import KarotzCoordinator, MyFastCoordinator
+from .const import DOMAIN, FILENAME, PLATFORMS
+from .coordinator import FastCoordinator, KarotzCoordinator
 
-PLATFORMS = ["sensor", "button", "select", "text", "number", "light", "switch", "image"]
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    """Set up OpenKarotz integration from config entry."""
+    # Initialize API client
     api = KarotzAPI(entry.data["host"])
+
+    # Initialize coordinators
     coordinator = KarotzCoordinator(hass, api)
-    fast_coordinator = MyFastCoordinator(hass, api)
+    fast_coordinator = FastCoordinator(hass, api)
+
+    # Set up image path
     image_path = hass.config.path(f"www/{FILENAME}")
 
-    await fast_coordinator.async_config_entry_first_refresh()
+    # Perform initial data refresh
     await coordinator.async_config_entry_first_refresh()
+    await fast_coordinator.async_config_entry_first_refresh()
 
+    # Store data in hass
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN][entry.entry_id] = {
         "api": api,
@@ -24,12 +32,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
         "image_path": image_path,
     }
 
+    # Set up platforms
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     return True
 
 
-async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
+async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    """Unload OpenKarotz config entry."""
     unload_ok = await hass.config_entries.async_unload_platforms(
         entry, PLATFORMS
     )
