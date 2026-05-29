@@ -2,15 +2,13 @@
 import logging
 
 from homeassistant.components.number import NumberEntity
-from homeassistant.core import callback
-from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import (
-    DOMAIN,
     DEVICE_EARS,
     DEVICE_LEDS,
+    DOMAIN,
     EAR_DEFAULT_VALUE,
     EAR_MAX_VALUE,
     EAR_MIN_VALUE,

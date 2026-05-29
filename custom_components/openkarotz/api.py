@@ -75,11 +75,13 @@ class KarotzAPI:
         await self._get("/cgi-bin/ears_random")
 
     async def ears(self, left: int, right: int):
-        """Move ears to specific positions.
+        """
+        Move ears to specific positions.
 
         Args:
             left: Left ear position (0-16)
             right: Right ear position (0-16)
+
         """
         await self._get(f"/cgi-bin/ears?left={left}&right={right}&noreset=1")
 
@@ -92,13 +94,15 @@ class KarotzAPI:
         await self._get("/cgi-bin/leds?color=000000")
 
     async def leds(self, pulse: int, hex_color1: str, speed: int, hex_color2: str):
-        """Control LED colors and animation.
+        """
+        Control LED colors and animation.
 
         Args:
             pulse: Pulse mode (0 or 1)
             hex_color1: First color in hex format (RRGGBB)
             speed: Animation speed (0-2000)
             hex_color2: Second color in hex format (RRGGBB)
+
         """
         await self._get(
             f"/cgi-bin/leds?pulse={pulse}&color={hex_color1}&speed={speed}&color2={hex_color2}"
@@ -120,11 +124,13 @@ class KarotzAPI:
         await self._get("/cgi-bin/apps/clock")
 
     async def tts(self, voice_id: str, text: str):
-        """Play text-to-speech.
+        """
+        Play text-to-speech.
 
         Args:
             voice_id: Voice identifier
             text: Text to speak
+
         """
         await self._get(f"/cgi-bin/tts?voice={voice_id}&text={text}")
 
@@ -136,10 +142,12 @@ class KarotzAPI:
         await self._get(f"/cgi-bin/sound?url={karotz_stream_url}")
 
     async def sound_control(self, cmd: str):
-        """Control audio playback.
+        """
+        Control audio playback.
 
         Args:
             cmd: Control command (play, pause, stop, etc.)
+
         """
         await self._get(f"/cgi-bin/sound_control?cmd={cmd}")
 
