@@ -100,7 +100,7 @@ BUTTONS = [
 ]
 
 
-async def async_setup_entry(hass, entry, async_add_entities):
+async def async_setup_entry(hass, entry, async_add_entities) -> None:
     """Set up button entities."""
     coordinator = hass.data[DOMAIN][entry.entry_id]["coordinator"]
 
@@ -126,7 +126,7 @@ class KarotzBaseButton(CoordinatorEntity, ButtonEntity):
     device_id: str
     device_name: str
 
-    def __init__(self, coordinator):
+    def __init__(self, coordinator) -> None:
         """Initialize button entity."""
         super().__init__(coordinator)
         self.api = coordinator.api
@@ -164,13 +164,13 @@ class KarotzBaseButton(CoordinatorEntity, ButtonEntity):
             return "000000"
 
         rgb = state.attributes.get("rgb_color", (0, 0, 0))
-        return "%02X%02X%02X" % rgb
+        return "{:02X}{:02X}{:02X}".format(*rgb)
 
 
 class KarotzButton(KarotzBaseButton):
     """OpenKarotz button entity."""
 
-    def __init__(self, coordinator, button_config):
+    def __init__(self, coordinator, button_config) -> None:
         """Initialize button entity."""
         super().__init__(coordinator)
 
@@ -199,7 +199,7 @@ class KarotzSpeakButton(KarotzBaseButton):
     device_id = DEVICE_SOUND
     device_name = "OpenKarotz Sound"
 
-    def __init__(self, coordinator):
+    def __init__(self, coordinator) -> None:
         """Initialize speak button."""
         super().__init__(coordinator)
         self._attr_translation_key = "speak"
@@ -230,7 +230,7 @@ class KarotzSpeakButton(KarotzBaseButton):
                 "TTS speaking with voice %s: %s", voice_id, text_state.state
             )
         except Exception as err:
-            _LOGGER.error("Failed to speak TTS: %s", err)
+            _LOGGER.exception("Failed to speak TTS: %s", err)
 
 
 class KarotzMoodButton(KarotzBaseButton):
@@ -239,7 +239,7 @@ class KarotzMoodButton(KarotzBaseButton):
     device_id = DEVICE_SOUND
     device_name = "OpenKarotz Sound"
 
-    def __init__(self, coordinator):
+    def __init__(self, coordinator) -> None:
         """Initialize mood button."""
         super().__init__(coordinator)
         self._attr_translation_key = "mood"
@@ -259,7 +259,7 @@ class KarotzMoodButton(KarotzBaseButton):
             await self.api.moods(mood_id)
             _LOGGER.debug("Playing mood %s", mood_id)
         except Exception as err:
-            _LOGGER.error("Failed to play mood: %s", err)
+            _LOGGER.exception("Failed to play mood: %s", err)
 
 class KarotzApplyLedsButton(KarotzBaseButton):
     """Button to apply LED color and animation settings."""
@@ -267,7 +267,7 @@ class KarotzApplyLedsButton(KarotzBaseButton):
     device_id = DEVICE_LEDS
     device_name = "OpenKarotz LEDs"
 
-    def __init__(self, coordinator):
+    def __init__(self, coordinator) -> None:
         """Initialize apply LEDs button."""
         super().__init__(coordinator)
         self._attr_translation_key = "apply_leds"
@@ -298,4 +298,4 @@ class KarotzApplyLedsButton(KarotzBaseButton):
                 hex_color2,
             )
         except Exception as err:
-            _LOGGER.error("Failed to apply LED settings: %s", err)
+            _LOGGER.exception("Failed to apply LED settings: %s", err)

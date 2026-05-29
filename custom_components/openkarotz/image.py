@@ -2,16 +2,19 @@ import asyncio
 import logging
 import os
 import socket
+from typing import TYPE_CHECKING
 
 import aiohttp
 from homeassistant.core import HomeAssistant, callback
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.event import async_track_state_change_event
-from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 from .const import DEFAULT_NAME, FILENAME, SNAPSHOT_SELECT_ENTITY, SNAPSHOT_URL_TEMPLATE
 from .image_entity import KarotzImage
+
+if TYPE_CHECKING:
+    from homeassistant.helpers.entity_platform import AddEntitiesCallback
+    from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -27,7 +30,7 @@ async def async_setup_entry(
     config: ConfigType,
     async_add_entities: AddEntitiesCallback,
     discovery_info: DiscoveryInfoType | None = None,
-):
+) -> None:
     image_path = hass.config.path(f"www/{FILENAME}")
     os.makedirs(os.path.dirname(image_path), exist_ok=True)
 
@@ -73,13 +76,14 @@ async def async_setup_entry(
                                 "Échec téléchargement (tentative %s) : HTTP %s",
                                 attempt, resp.status,
                             )
-                            raise aiohttp.ClientError(f"HTTP {resp.status}")
+                            msg = f"HTTP {resp.status}"
+                            raise aiohttp.ClientError(msg)
                     except (TimeoutError, aiohttp.ClientError, socket.gaierror) as err:
                         _LOGGER.debug("Tentative %s échouée : %s", attempt, err)
                         if attempt < max_retries:
                             await asyncio.sleep(2 ** (attempt - 1))
                         else:
-                            _LOGGER.error(
+                            _LOGGER.exception(
                                 "Impossible de télécharger après %s tentatives : %s",
                                 max_retries, err,
                             )
@@ -91,7 +95,7 @@ async def async_setup_entry(
                 _LOGGER.info("Fichier image conservé (téléchargement échoué).")
 
         except Exception as e:
-            _LOGGER.error("Erreur lors du téléchargement de l'image Karotz : %s", e)
+            _LOGGER.exception("Erreur lors du téléchargement de l'image Karotz : %s", e)
 
         return None
 

@@ -18,7 +18,7 @@ _LOGGER = logging.getLogger(__name__)
 class KarotzCoordinator(DataUpdateCoordinator):
     """Main coordinator for OpenKarotz data updates (4-hour interval)."""
 
-    def __init__(self, hass, api):
+    def __init__(self, hass, api) -> None:
         """Initialize the coordinator."""
         super().__init__(
             hass,
@@ -38,13 +38,14 @@ class KarotzCoordinator(DataUpdateCoordinator):
                 "radios": await self.api.get_radios(),
             }
         except Exception as err:
-            raise UpdateFailed(f"Error communicating with API: {err}") from err
+            msg = f"Error communicating with API: {err}"
+            raise UpdateFailed(msg) from err
 
 
 class FastCoordinator(DataUpdateCoordinator):
     """Fast coordinator for frequently updated data (10-second interval)."""
 
-    def __init__(self, hass, api):
+    def __init__(self, hass, api) -> None:
         """Initialize the fast coordinator."""
         super().__init__(
             hass,
@@ -61,4 +62,5 @@ class FastCoordinator(DataUpdateCoordinator):
                 "snapshots": await self.api.get_snapshots(),
             }
         except Exception as err:
-            raise UpdateFailed(f"Fast update failed: {err}") from err
+            msg = f"Fast update failed: {err}"
+            raise UpdateFailed(msg) from err

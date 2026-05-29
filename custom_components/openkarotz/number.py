@@ -1,4 +1,5 @@
 """Number entities for OpenKarotz integration."""
+import contextlib
 import logging
 
 from homeassistant.components.number import NumberEntity
@@ -63,7 +64,7 @@ NUMBERS = [
 ]
 
 
-async def async_setup_entry(hass, entry, async_add_entities):
+async def async_setup_entry(hass, entry, async_add_entities) -> None:
     """Set up number entities."""
     coordinator = hass.data[DOMAIN][entry.entry_id]["coordinator"]
 
@@ -83,7 +84,7 @@ class KarotzBaseNumber(CoordinatorEntity, RestoreEntity, NumberEntity):
 
     _attr_has_entity_name = True
 
-    def __init__(self, coordinator):
+    def __init__(self, coordinator) -> None:
         """Initialize number entity."""
         super().__init__(coordinator)
         self.api = coordinator.api
@@ -98,7 +99,7 @@ class KarotzBaseNumber(CoordinatorEntity, RestoreEntity, NumberEntity):
             "model": MODEL,
         }
 
-    async def async_added_to_hass(self):
+    async def async_added_to_hass(self) -> None:
         """Restore previous state."""
         await super().async_added_to_hass()
 
@@ -106,10 +107,8 @@ class KarotzBaseNumber(CoordinatorEntity, RestoreEntity, NumberEntity):
         if last_state is None:
             return
 
-        try:
+        with contextlib.suppress(ValueError, TypeError):
             self._attr_native_value = float(last_state.state)
-        except (ValueError, TypeError):
-            pass
 
     async def async_set_native_value(self, value: float) -> None:
         """Set new value."""
@@ -126,7 +125,7 @@ class KarotzBaseNumber(CoordinatorEntity, RestoreEntity, NumberEntity):
 class KarotzNumber(KarotzBaseNumber):
     """OpenKarotz number entity."""
 
-    def __init__(self, coordinator, number_config):
+    def __init__(self, coordinator, number_config) -> None:
         """Initialize number entity."""
         super().__init__(coordinator)
 

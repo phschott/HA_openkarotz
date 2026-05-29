@@ -29,7 +29,7 @@ async def async_setup_entry(
     hass,
     entry,
     async_add_entities,
-):
+) -> None:
     coordinator = hass.data[DOMAIN][entry.entry_id][
         "coordinator"
     ]
@@ -68,7 +68,7 @@ class KarotzBaseSwitch(
     def __init__(
         self,
         coordinator,
-    ):
+    ) -> None:
         super().__init__(coordinator)
 
     @property
@@ -84,7 +84,7 @@ class KarotzBaseSwitch(
 
     async def async_added_to_hass(
         self,
-    ):
+    ) -> None:
         await super().async_added_to_hass()
 
         last_state = (
@@ -103,7 +103,7 @@ class KarotzBaseSwitch(
     async def async_turn_on(
         self,
         **kwargs,
-    ):
+    ) -> None:
         self._attr_is_on = True
 
         self.async_write_ha_state()
@@ -111,7 +111,7 @@ class KarotzBaseSwitch(
     async def async_turn_off(
         self,
         **kwargs,
-    ):
+    ) -> None:
         self._attr_is_on = False
 
         self.async_write_ha_state()
@@ -129,7 +129,7 @@ class KarotzSwitch(
         device_name,
         icon,
         default_state,
-    ):
+    ) -> None:
         super().__init__(coordinator)
 
         self.device_id = device_id

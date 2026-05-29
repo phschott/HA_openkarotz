@@ -75,7 +75,7 @@ async def async_setup_entry(
     hass,
     entry,
     async_add_entities,
-):
+) -> None:
     """Setup OpenKarotz sensors."""
     coordinator = hass.data[DOMAIN][entry.entry_id][
         "coordinator"
@@ -119,7 +119,7 @@ class KarotzBaseSensor(
     device_id: str
     device_name: str
 
-    def __init__(self, coordinator):
+    def __init__(self, coordinator) -> None:
         super().__init__(coordinator)
 
     @property
@@ -148,7 +148,7 @@ class KarotzStatusSensor(
         unit,
         entity_category,
         state_class,
-    ):
+    ) -> None:
         super().__init__(coordinator)
 
         self.key = key
@@ -189,7 +189,7 @@ class KarotzSnapshotCountSensor(
     device_id = "karotz_picture"
     device_name = "OpenKarotz Picture"
 
-    def __init__(self, coordinator):
+    def __init__(self, coordinator) -> None:
         super().__init__(coordinator)
 
         self._attr_translation_key = (

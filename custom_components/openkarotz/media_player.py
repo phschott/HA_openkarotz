@@ -2,14 +2,14 @@ from homeassistant.components.media_player import MediaPlayerEntity
 
 
 class KarotzMediaPlayer(MediaPlayerEntity):
-    def __init__(self, api):
+    def __init__(self, api) -> None:
         self.api = api
 
-    async def async_play_media(self, media_type, media_id, **kwargs):
+    async def async_play_media(self, media_type, media_id, **kwargs) -> None:
         await self.api._get(f"/cgi-bin/sound?url={media_id}")
 
-    async def async_media_pause(self):
+    async def async_media_pause(self) -> None:
         await self.api._get("/cgi-bin/sound_control?cmd=pause")
 
-    async def async_media_stop(self):
+    async def async_media_stop(self) -> None:
         await self.api._get("/cgi-bin/sound_control?cmd=quit")

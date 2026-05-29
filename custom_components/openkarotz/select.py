@@ -45,7 +45,7 @@ async def async_setup_entry(
     hass,
     entry,
     async_add_entities,
-):
+) -> None:
     """Setup OpenKarotz select entities."""
     coordinator = hass.data[DOMAIN][entry.entry_id][
         "coordinator"
@@ -97,7 +97,7 @@ class KarotzBaseSelect(
     def __init__(
         self,
         coordinator,
-    ):
+    ) -> None:
         super().__init__(coordinator)
 
         self.api = coordinator.api
@@ -120,7 +120,7 @@ class KarotzBaseSelect(
 
     async def async_added_to_hass(
         self,
-    ):
+    ) -> None:
         """Restore previous state."""
         await super().async_added_to_hass()
 
@@ -163,7 +163,7 @@ class KarotzSelect(
         options_key,
         option_label,
         icon,
-    ):
+    ) -> None:
         super().__init__(coordinator)
 
         self.data_key = data_key
@@ -229,18 +229,17 @@ class KarotzSelect(
         if (
             self._attr_current_option
             not in self.options
-        ):
-            if self.options:
-                self._attr_current_option = (
-                    self.options[0]
-                )
+        ) and self.options:
+            self._attr_current_option = (
+                self.options[0]
+            )
 
         return self._attr_current_option
 
     async def async_select_option(
         self,
         option,
-    ):
+    ) -> None:
         """Handle selection."""
         if option not in self.options:
             return
@@ -255,7 +254,7 @@ class OpenKarotzSnapshotSelect(
     device_id = "karotz_picture"
     device_name = "OpenKarotz Picture"
 
-    def __init__(self, coordinator):
+    def __init__(self, coordinator) -> None:
         super().__init__(coordinator)
 
         self.entity_id = (
@@ -305,18 +304,17 @@ class OpenKarotzSnapshotSelect(
         if (
             self._attr_current_option
             not in self.options
-        ):
-            if self.options:
-                self._attr_current_option = (
-                    self.options[0]
-                )
+        ) and self.options:
+            self._attr_current_option = (
+                self.options[0]
+            )
 
         return self._attr_current_option
 
     async def async_select_option(
         self,
         option,
-    ):
+    ) -> None:
         self._attr_current_option = option
 
         self.async_write_ha_state()

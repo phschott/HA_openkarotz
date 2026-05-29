@@ -2,18 +2,21 @@ import logging
 import os
 import uuid
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 from homeassistant.components.image import ImageEntity
-from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.util import dt as dt_util
 
 from .const import DEFAULT_NAME, DOMAIN, MANUFACTURER, MODEL
 
+if TYPE_CHECKING:
+    from homeassistant.core import HomeAssistant
+
 _LOGGER = logging.getLogger(__name__)
 
 class KarotzImage(CoordinatorEntity, ImageEntity):
-    def __init__(self, hass: HomeAssistant, coordinator, path: str, config_entry_id: str | None = None, name: str | None = None):
+    def __init__(self, hass: HomeAssistant, coordinator, path: str, config_entry_id: str | None = None, name: str | None = None) -> None:
         # Initialize CoordinatorEntity so the entity receives coordinator updates
         super().__init__(coordinator)
         self.hass = hass
@@ -157,6 +160,6 @@ class KarotzImage(CoordinatorEntity, ImageEntity):
         return None
 
     @property
-    def device_class(self):
+    def device_class(self) -> str:
         """Return device class 'timestamp' for datetime formatting with localization."""
         return "timestamp"

@@ -9,7 +9,7 @@ _LOGGER = logging.getLogger(__name__)
 class KarotzAPI:
     """OpenKarotz API client for HTTP communication."""
 
-    def __init__(self, host):
+    def __init__(self, host) -> None:
         """Initialize API client with device host."""
         self.host = host
 
@@ -40,15 +40,15 @@ class KarotzAPI:
         """Get device status."""
         return await self._get("/cgi-bin/status")
 
-    async def reboot(self):
+    async def reboot(self) -> None:
         """Reboot the device."""
         await self._get("/cgi-bin/reboot")
 
-    async def wakeup(self):
+    async def wakeup(self) -> None:
         """Wake up the device."""
         await self._get("/cgi-bin/wakeup?silent=1")
 
-    async def sleep(self):
+    async def sleep(self) -> None:
         """Put device to sleep."""
         await self._get("/cgi-bin/sleep")
 
@@ -70,11 +70,11 @@ class KarotzAPI:
     # =====================
     # EARS / LEDS
     # =====================
-    async def ears_random(self):
+    async def ears_random(self) -> None:
         """Move ears to random position."""
         await self._get("/cgi-bin/ears_random")
 
-    async def ears(self, left: int, right: int):
+    async def ears(self, left: int, right: int) -> None:
         """
         Move ears to specific positions.
 
@@ -85,15 +85,15 @@ class KarotzAPI:
         """
         await self._get(f"/cgi-bin/ears?left={left}&right={right}&noreset=1")
 
-    async def ears_reset(self):
+    async def ears_reset(self) -> None:
         """Reset ears to default position."""
         await self._get("/cgi-bin/ears_reset")
 
-    async def led_off(self):
+    async def led_off(self) -> None:
         """Turn off LEDs."""
         await self._get("/cgi-bin/leds?color=000000")
 
-    async def leds(self, pulse: int, hex_color1: str, speed: int, hex_color2: str):
+    async def leds(self, pulse: int, hex_color1: str, speed: int, hex_color2: str) -> None:
         """
         Control LED colors and animation.
 
@@ -111,19 +111,19 @@ class KarotzAPI:
     # =====================
     # VOICE / TTS / MOODS
     # =====================
-    async def random_mood(self):
+    async def random_mood(self) -> None:
         """Play random mood animation."""
         await self._get("/cgi-bin/apps/moods")
 
-    async def moods(self, mood_id: str):
+    async def moods(self, mood_id: str) -> None:
         """Play specific mood animation."""
         await self._get(f"/cgi-bin/apps/moods?id={mood_id}")
 
-    async def clock(self):
+    async def clock(self) -> None:
         """Display clock."""
         await self._get("/cgi-bin/apps/clock")
 
-    async def tts(self, voice_id: str, text: str):
+    async def tts(self, voice_id: str, text: str) -> None:
         """
         Play text-to-speech.
 
@@ -137,11 +137,11 @@ class KarotzAPI:
     # =====================
     # AUDIO / RADIOS
     # =====================
-    async def sound_url(self, karotz_stream_url: str):
+    async def sound_url(self, karotz_stream_url: str) -> None:
         """Play audio from URL."""
         await self._get(f"/cgi-bin/sound?url={karotz_stream_url}")
 
-    async def sound_control(self, cmd: str):
+    async def sound_control(self, cmd: str) -> None:
         """
         Control audio playback.
 
@@ -154,11 +154,11 @@ class KarotzAPI:
     # =====================
     # SNAPSHOT / WEBCAM
     # =====================
-    async def snapshot(self):
+    async def snapshot(self) -> None:
         """Take a snapshot."""
         await self._get("/cgi-bin/snapshot?silent=1")
 
-    async def clear_snapshots(self):
+    async def clear_snapshots(self) -> None:
         """Clear all snapshots."""
         await self._get("/cgi-bin/clear_snapshots")
 

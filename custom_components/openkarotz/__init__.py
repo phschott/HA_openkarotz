@@ -1,10 +1,14 @@
 """OpenKarotz integration for Home Assistant."""
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant
+
+from typing import TYPE_CHECKING
 
 from .api import KarotzAPI
 from .const import DOMAIN, FILENAME, PLATFORMS
 from .coordinator import FastCoordinator, KarotzCoordinator
+
+if TYPE_CHECKING:
+    from homeassistant.config_entries import ConfigEntry
+    from homeassistant.core import HomeAssistant
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:

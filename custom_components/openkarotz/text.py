@@ -29,7 +29,7 @@ async def async_setup_entry(
     hass,
     entry,
     async_add_entities,
-):
+) -> None:
     coordinator = hass.data[DOMAIN][entry.entry_id][
         "coordinator"
     ]
@@ -68,7 +68,7 @@ class KarotzBaseText(
     def __init__(
         self,
         coordinator,
-    ):
+    ) -> None:
         super().__init__(coordinator)
 
     @property
@@ -84,7 +84,7 @@ class KarotzBaseText(
 
     async def async_added_to_hass(
         self,
-    ):
+    ) -> None:
         await super().async_added_to_hass()
 
         last_state = (
@@ -107,7 +107,7 @@ class KarotzBaseText(
     async def async_set_value(
         self,
         value,
-    ):
+    ) -> None:
         self._attr_native_value = value
 
         self.async_write_ha_state()
@@ -125,7 +125,7 @@ class KarotzText(
         device_name,
         icon,
         default_value,
-    ):
+    ) -> None:
         super().__init__(coordinator)
 
         self.device_id = device_id

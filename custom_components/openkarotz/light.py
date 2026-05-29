@@ -28,7 +28,7 @@ async def async_setup_entry(
     hass,
     entry,
     async_add_entities,
-):
+) -> None:
     coordinator = hass.data[DOMAIN][entry.entry_id][
         "coordinator"
     ]
@@ -57,7 +57,7 @@ class KarotzBaseLight(
     device_id: str
     device_name: str
 
-    def __init__(self, coordinator):
+    def __init__(self, coordinator) -> None:
         super().__init__(coordinator)
 
     @property
@@ -92,7 +92,7 @@ class KarotzColorLight(
         coordinator,
         suffix,
         translation_key,
-    ):
+    ) -> None:
         super().__init__(coordinator)
 
         self.suffix = suffix
@@ -120,7 +120,7 @@ class KarotzColorLight(
     async def async_turn_on(
         self,
         **kwargs,
-    ):
+    ) -> None:
 
         rgb_color = kwargs.get(
             "rgb_color"
@@ -138,7 +138,7 @@ class KarotzColorLight(
     async def async_turn_off(
         self,
         **kwargs,
-    ):
+    ) -> None:
 
         self._attr_is_on = False
 
