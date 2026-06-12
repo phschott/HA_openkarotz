@@ -77,13 +77,9 @@ async def async_setup_entry(
     async_add_entities,
 ) -> None:
     """Setup OpenKarotz sensors."""
-    coordinator = hass.data[DOMAIN][entry.entry_id][
-        "coordinator"
-    ]
+    coordinator = hass.data[DOMAIN][entry.entry_id]["coordinator"]
 
-    fast_coordinator = hass.data[DOMAIN][entry.entry_id][
-        "fast_coordinator"
-    ]
+    fast_coordinator = hass.data[DOMAIN][entry.entry_id]["fast_coordinator"]
 
     entities = [
         KarotzStatusSensor(
@@ -101,11 +97,7 @@ async def async_setup_entry(
         ) in SENSORS
     ]
 
-    entities.append(
-        KarotzSnapshotCountSensor(
-            fast_coordinator
-        )
-    )
+    entities.append(KarotzSnapshotCountSensor(fast_coordinator))
 
     async_add_entities(entities)
 
@@ -125,9 +117,7 @@ class KarotzBaseSensor(
     @property
     def device_info(self):
         return {
-            "identifiers": {
-                (DOMAIN, self.device_id)
-            },
+            "identifiers": {(DOMAIN, self.device_id)},
             "name": self.device_name,
             "manufacturer": MANUFACTURER,
             "model": MODEL,
@@ -137,7 +127,6 @@ class KarotzBaseSensor(
 class KarotzStatusSensor(
     KarotzBaseSensor,
 ):
-
     device_id = "karotz"
     device_name = "OpenKarotz"
 
@@ -155,21 +144,13 @@ class KarotzStatusSensor(
 
         self._attr_translation_key = key
 
-        self._attr_unique_id = (
-            f"openkarotz_{key}"
-        )
+        self._attr_unique_id = f"openkarotz_{key}"
 
-        self._attr_native_unit_of_measurement = (
-            unit
-        )
+        self._attr_native_unit_of_measurement = unit
 
-        self._attr_entity_category = (
-            entity_category
-        )
+        self._attr_entity_category = entity_category
 
-        self._attr_state_class = (
-            state_class
-        )
+        self._attr_state_class = state_class
 
     @property
     def native_value(self):
@@ -185,36 +166,27 @@ class KarotzStatusSensor(
 class KarotzSnapshotCountSensor(
     KarotzBaseSensor,
 ):
-
     device_id = "karotz_picture"
     device_name = "OpenKarotz Picture"
 
     def __init__(self, coordinator) -> None:
         super().__init__(coordinator)
 
-        self._attr_translation_key = (
-            "snapshots"
-        )
+        self._attr_translation_key = "snapshots"
 
-        self._attr_unique_id = (
-            "openkarotz_snapshots"
-        )
+        self._attr_unique_id = "openkarotz_snapshots"
 
-        self._attr_state_class = (
-            SensorStateClass.MEASUREMENT
-        )
+        self._attr_state_class = SensorStateClass.MEASUREMENT
 
     @property
     def native_value(self):
 
-        snapshots = (
-            self.coordinator.data.get(
-                "snapshots",
-                {},
-            ).get(
-                "snapshots",
-                [],
-            )
+        snapshots = self.coordinator.data.get(
+            "snapshots",
+            {},
+        ).get(
+            "snapshots",
+            [],
         )
 
         return len(snapshots)

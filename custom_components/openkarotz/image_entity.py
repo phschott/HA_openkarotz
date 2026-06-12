@@ -15,8 +15,16 @@ if TYPE_CHECKING:
 
 _LOGGER = logging.getLogger(__name__)
 
+
 class KarotzImage(CoordinatorEntity, ImageEntity):
-    def __init__(self, hass: HomeAssistant, coordinator, path: str, config_entry_id: str | None = None, name: str | None = None) -> None:
+    def __init__(
+        self,
+        hass: HomeAssistant,
+        coordinator,
+        path: str,
+        config_entry_id: str | None = None,
+        name: str | None = None,
+    ) -> None:
         # Initialize CoordinatorEntity so the entity receives coordinator updates
         super().__init__(coordinator)
         self.hass = hass
@@ -48,7 +56,9 @@ class KarotzImage(CoordinatorEntity, ImageEntity):
     async def async_added_to_hass(self) -> None:
         """Register a listener to rotate the access token when coordinator updates."""
         # coordinator.async_add_listener returns an unsubscribe callable
-        self._remove_coordinator_listener = self.coordinator.async_add_listener(self._on_coordinator_update)
+        self._remove_coordinator_listener = self.coordinator.async_add_listener(
+            self._on_coordinator_update
+        )
 
         # Initialize last_refreshed only if coordinator already has data (first successful refresh)
         # Coordinator.update_method returns dict with image_data and pub_date when a new image was fetched
@@ -56,7 +66,14 @@ class KarotzImage(CoordinatorEntity, ImageEntity):
         if getattr(self.coordinator, "data", None) is not None:
             # Prefer coordinator-provided timestamps if available, otherwise use now
             coordinator_time = None
-            for attr in ("last_update_time", "last_update_at", "last_update", "_last_update", "_last_update_time", "_last_update_at"):
+            for attr in (
+                "last_update_time",
+                "last_update_at",
+                "last_update",
+                "_last_update",
+                "_last_update_time",
+                "_last_update_at",
+            ):
                 coordinator_time = getattr(self.coordinator, attr, None)
                 if isinstance(coordinator_time, datetime):
                     break
@@ -67,14 +84,19 @@ class KarotzImage(CoordinatorEntity, ImageEntity):
                 if pub_date_str:
                     try:
                         from email.utils import parsedate_to_datetime
+
                         self._pub_date = parsedate_to_datetime(pub_date_str)
                     except Exception as e:
-                        _LOGGER.debug("Failed to parse publication date '%s': %s", pub_date_str, e)
+                        _LOGGER.debug(
+                            "Failed to parse publication date '%s': %s", pub_date_str, e
+                        )
         else:
             self._last_refreshed = None
 
     async def async_will_remove_from_hass(self) -> None:
-        if hasattr(self, "_remove_coordinator_listener") and callable(self._remove_coordinator_listener):
+        if hasattr(self, "_remove_coordinator_listener") and callable(
+            self._remove_coordinator_listener
+        ):
             self._remove_coordinator_listener()
 
     def _on_coordinator_update(self) -> None:
@@ -91,9 +113,12 @@ class KarotzImage(CoordinatorEntity, ImageEntity):
                 if pub_date_str:
                     try:
                         from email.utils import parsedate_to_datetime
+
                         self._pub_date = parsedate_to_datetime(pub_date_str)
                     except Exception as e:
-                        _LOGGER.debug("Failed to parse publication date '%s': %s", pub_date_str, e)
+                        _LOGGER.debug(
+                            "Failed to parse publication date '%s': %s", pub_date_str, e
+                        )
         # Trigger HA state update so frontend will use the new token/url
         self.async_write_ha_state()
 

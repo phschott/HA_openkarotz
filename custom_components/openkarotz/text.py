@@ -30,9 +30,7 @@ async def async_setup_entry(
     entry,
     async_add_entities,
 ) -> None:
-    coordinator = hass.data[DOMAIN][entry.entry_id][
-        "coordinator"
-    ]
+    coordinator = hass.data[DOMAIN][entry.entry_id]["coordinator"]
 
     entities = [
         KarotzText(
@@ -74,9 +72,7 @@ class KarotzBaseText(
     @property
     def device_info(self):
         return {
-            "identifiers": {
-                (DOMAIN, self.device_id)
-            },
+            "identifiers": {(DOMAIN, self.device_id)},
             "name": self.device_name,
             "manufacturer": MANUFACTURER,
             "model": MODEL,
@@ -87,22 +83,14 @@ class KarotzBaseText(
     ) -> None:
         await super().async_added_to_hass()
 
-        last_state = (
-            await self.async_get_last_state()
-        )
+        last_state = await self.async_get_last_state()
 
-        if (
-            last_state is not None
-            and last_state.state
-            not in (
-                None,
-                "unknown",
-                "unavailable",
-            )
+        if last_state is not None and last_state.state not in (
+            None,
+            "unknown",
+            "unavailable",
         ):
-            self._attr_native_value = (
-                last_state.state
-            )
+            self._attr_native_value = last_state.state
 
     async def async_set_value(
         self,
@@ -116,7 +104,6 @@ class KarotzBaseText(
 class KarotzText(
     KarotzBaseText,
 ):
-
     def __init__(
         self,
         coordinator,
@@ -130,24 +117,14 @@ class KarotzText(
 
         self.device_id = device_id
         self.device_name = device_name
-        self.entity_id = (
-            f"text.openkarotz_{translation_key}"
-        )
+        self.entity_id = f"text.openkarotz_{translation_key}"
 
-        self._attr_translation_key = (
-            translation_key
-        )
+        self._attr_translation_key = translation_key
 
-        self._attr_suggested_object_id = (
-            translation_key
-        )
+        self._attr_suggested_object_id = translation_key
 
-        self._attr_unique_id = (
-            f"openkarotz_{translation_key}"
-        )
+        self._attr_unique_id = f"openkarotz_{translation_key}"
 
         self._attr_icon = icon
 
-        self._attr_native_value = (
-            default_value
-        )
+        self._attr_native_value = default_value
