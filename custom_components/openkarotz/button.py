@@ -1,4 +1,5 @@
 """Button entities for OpenKarotz integration."""
+
 import logging
 
 import aiohttp
@@ -100,9 +101,7 @@ async def async_setup_entry(hass, entry, async_add_entities) -> None:
     """Set up button entities."""
     coordinator = hass.data[DOMAIN][entry.entry_id]["coordinator"]
 
-    entities = [
-        KarotzButton(coordinator, button_config) for button_config in BUTTONS
-    ]
+    entities = [KarotzButton(coordinator, button_config) for button_config in BUTTONS]
 
     entities.extend(
         [
@@ -149,7 +148,7 @@ class KarotzBaseButton(CoordinatorEntity, ButtonEntity):
 
         try:
             return int(float(state.state))
-        except (ValueError, TypeError):
+        except ValueError, TypeError:
             return default
 
 
@@ -174,9 +173,7 @@ class KarotzButton(KarotzBaseButton):
         try:
             await getattr(self.api, self.method)()
         except aiohttp.ClientResponseError as err:
-            _LOGGER.debug(
-                "API request completed despite header issue: %s", err
-            )
+            _LOGGER.debug("API request completed despite header issue: %s", err)
 
 
 class KarotzSpeakButton(KarotzBaseButton):
@@ -212,9 +209,7 @@ class KarotzSpeakButton(KarotzBaseButton):
         try:
             voice_id = voice_state.state.split("-")[0].strip()
             await self.api.tts(voice_id, text_state.state)
-            _LOGGER.debug(
-                "TTS speaking with voice %s: %s", voice_id, text_state.state
-            )
+            _LOGGER.debug("TTS speaking with voice %s: %s", voice_id, text_state.state)
         except Exception as err:
             _LOGGER.exception("Failed to speak TTS: %s", err)
 

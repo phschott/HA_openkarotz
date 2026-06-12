@@ -14,14 +14,18 @@ MODEL = "OpenKarotz"
 
 
 LIGHTS = [
-    (
-        "1",
-        "color_1",
-    ),
-    (
-        "2",
-        "color_2",
-    ),
+    {
+        "suffix": "1",
+        "translation_key": "color_1",
+        "default_rgb": (0, 255, 0),  # Vert
+        "default_is_on": True,  # ON
+    },
+    {
+        "suffix": "2",
+        "translation_key": "color_2",
+        "default_rgb": (0, 0, 0),  # Noir (off)
+        "default_is_on": False,  # OFF
+    },
 ]
 
 
@@ -36,13 +40,9 @@ async def async_setup_entry(
         KarotzColorLight(
             coordinator,
             hass,
-            suffix,
-            translation_key,
+            light_config,  # ← Passer toute la config
         )
-        for (
-            suffix,
-            translation_key,
-        ) in LIGHTS
+        for light_config in LIGHTS
     ]
 
     async_add_entities(entities)
@@ -85,27 +85,21 @@ class KarotzColorLight(
         self,
         coordinator,
         hass,
-        suffix,
-        translation_key,
+        light_config,
     ) -> None:
         super().__init__(coordinator, hass)
 
-        self.suffix = suffix
+        self.suffix = light_config["suffix"]
         self.api = coordinator.api
 
-        self.entity_id = f"light.openkarotz_color_{suffix}"
+        self.entity_id = f"light.openkarotz_color_{self.suffix}"
 
-        self._attr_translation_key = translation_key
+        self._attr_translation_key = light_config["translation_key"]
 
-        self._attr_unique_id = f"openkarotz_color_{suffix}"
+        self._attr_unique_id = f"openkarotz_color_{self.suffix}"
 
-        self._attr_rgb_color = (
-            0,
-            255,
-            0,
-        )
-
-        self._attr_is_on = True
+        self._attr_rgb_color = light_config["default_rgb"]
+        self._attr_is_on = light_config["default_is_on"]
 
     async def async_turn_on(
         self,
