@@ -1,3 +1,5 @@
+"""Light entities for OpenKarotz integration."""
+
 from homeassistant.components.light import (
     ColorMode,
     LightEntity,
@@ -17,14 +19,14 @@ LIGHTS = [
     {
         "suffix": "1",
         "translation_key": "color_1",
-        "default_rgb": (0, 255, 0),  # Vert
-        "default_is_on": True,  # ON
+        "default_rgb": (0, 255, 0),  # Green
+        "default_is_on": True,
     },
     {
         "suffix": "2",
         "translation_key": "color_2",
-        "default_rgb": (0, 0, 0),  # Noir (off)
-        "default_is_on": False,  # OFF
+        "default_rgb": (0, 0, 0),  # Black (off)
+        "default_is_on": False,
     },
 ]
 
@@ -34,13 +36,14 @@ async def async_setup_entry(
     entry,
     async_add_entities,
 ) -> None:
+    """Setup OpenKarotz light entities."""
     coordinator = hass.data[DOMAIN][entry.entry_id]["coordinator"]
 
     entities = [
         KarotzColorLight(
             coordinator,
             hass,
-            light_config,  # ← Passer toute la config
+            light_config,
         )
         for light_config in LIGHTS
     ]
@@ -52,17 +55,21 @@ class KarotzBaseLight(
     CoordinatorEntity,
     LightEntity,
 ):
+    """Base class for OpenKarotz light entities."""
+
     _attr_has_entity_name = True
 
     device_id: str
     device_name: str
 
     def __init__(self, coordinator, hass) -> None:
+        """Initialize light entity."""
         super().__init__(coordinator)
         self.hass = hass
 
     @property
     def device_info(self):
+        """Return device info."""
         return {
             "identifiers": {(DOMAIN, self.device_id)},
             "name": self.device_name,
@@ -74,6 +81,8 @@ class KarotzBaseLight(
 class KarotzColorLight(
     KarotzBaseLight,
 ):
+    """OpenKarotz color light entity."""
+
     device_id = "karotz_leds"
     device_name = "OpenKarotz LEDs"
 
@@ -87,6 +96,7 @@ class KarotzColorLight(
         hass,
         light_config,
     ) -> None:
+        """Initialize light entity."""
         super().__init__(coordinator, hass)
 
         self.suffix = light_config["suffix"]
@@ -98,14 +108,17 @@ class KarotzColorLight(
 
         self._attr_unique_id = f"openkarotz_color_{self.suffix}"
 
+        # Set default RGB color from configuration
         self._attr_rgb_color = light_config["default_rgb"]
+
+        # Set default on/off state from configuration
         self._attr_is_on = light_config["default_is_on"]
 
     async def async_turn_on(
         self,
         **kwargs,
     ) -> None:
-
+        """Turn on light."""
         rgb_color = kwargs.get("rgb_color")
 
         if rgb_color is not None:
@@ -122,7 +135,7 @@ class KarotzColorLight(
         self,
         **kwargs,
     ) -> None:
-
+        """Turn off light."""
         self._attr_is_on = False
 
         self.async_write_ha_state()
