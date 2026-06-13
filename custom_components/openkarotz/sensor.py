@@ -83,7 +83,7 @@ async def async_setup_entry(
 
     entities = [
         KarotzStatusSensor(
-            coordinator,
+            fast_coordinator,
             key,
             unit,
             entity_category,

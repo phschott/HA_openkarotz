@@ -37,7 +37,7 @@ async def async_setup_entry(
     async_add_entities,
 ) -> None:
     """Setup OpenKarotz light entities."""
-    coordinator = hass.data[DOMAIN][entry.entry_id]["coordinator"]
+    coordinator = hass.data[DOMAIN][entry.entry_id]["fast_coordinator"]
 
     entities = [
         KarotzColorLight(
@@ -113,6 +113,22 @@ class KarotzColorLight(
 
         # Set default on/off state from configuration
         self._attr_is_on = light_config["default_is_on"]
+
+    def _handle_coordinator_update(self) -> None:
+        """Sync LED color from device status (color_1 only)."""
+        if self.suffix == "1" and self.coordinator.data:
+            status = self.coordinator.data.get("status") or {}
+            led_color = status.get("led_color")
+            if led_color and len(led_color) == 6:
+                try:
+                    r = int(led_color[0:2], 16)
+                    g = int(led_color[2:4], 16)
+                    b = int(led_color[4:6], 16)
+                    self._attr_rgb_color = (r, g, b)
+                    self._attr_is_on = led_color != "000000"
+                except ValueError:
+                    pass
+        super()._handle_coordinator_update()
 
     async def async_turn_on(
         self,

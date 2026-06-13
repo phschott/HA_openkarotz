@@ -31,7 +31,7 @@ async def async_setup_entry(
     entry,
     async_add_entities,
 ) -> None:
-    coordinator = hass.data[DOMAIN][entry.entry_id]["coordinator"]
+    coordinator = hass.data[DOMAIN][entry.entry_id]["fast_coordinator"]
 
     entities = [
         KarotzSwitch(
@@ -150,6 +150,15 @@ class KarotzSwitch(
         self._attr_icon = icon
 
         self._attr_is_on = default_state
+
+    def _handle_coordinator_update(self) -> None:
+        """Sync LED pulse state from device status."""
+        if self.device_id == "karotz_leds" and self.coordinator.data:
+            status = self.coordinator.data.get("status") or {}
+            led_pulse = status.get("led_pulse")
+            if led_pulse is not None:
+                self._attr_is_on = led_pulse == "1"
+        super()._handle_coordinator_update()
 
     async def _on_state_changed(self) -> None:
         """Apply LED settings when pulse switch changes."""

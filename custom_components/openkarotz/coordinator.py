@@ -33,7 +33,6 @@ class KarotzCoordinator(DataUpdateCoordinator):
         """Fetch data from API."""
         try:
             return {
-                "status": await self.api.get_status(),
                 "voices": await self.api.get_voices(),
                 "moods": await self.api.get_moods(),
                 "radios": await self.api.get_radios(),
@@ -60,6 +59,7 @@ class FastCoordinator(DataUpdateCoordinator):
         """Fetch frequently updated data from API."""
         try:
             return {
+                "status": await self.api.get_status(),
                 "snapshots": await self.api.get_snapshots(),
             }
         except Exception as err:

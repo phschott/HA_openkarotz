@@ -38,7 +38,7 @@ ENTITY_LED_PULSE = "switch.openkarotz_led_pulse"
 
 # Coordinator Update Intervals (in seconds)
 COORDINATOR_UPDATE_INTERVAL = 14400  # 4 hours
-COORDINATOR_FAST_UPDATE_INTERVAL = 10  # 10 seconds
+COORDINATOR_FAST_UPDATE_INTERVAL = 5  # 5 seconds
 
 # Ear Configuration
 EAR_MIN_VALUE = 0
