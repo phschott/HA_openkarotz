@@ -1,4 +1,5 @@
 """Data coordinators for OpenKarotz integration."""
+
 import logging
 from datetime import timedelta
 

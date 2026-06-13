@@ -1,4 +1,5 @@
 """OpenKarotz API client."""
+
 import logging
 
 import aiohttp
@@ -93,7 +94,9 @@ class KarotzAPI:
         """Turn off LEDs."""
         await self._get("/cgi-bin/leds?color=000000")
 
-    async def leds(self, pulse: int, hex_color1: str, speed: int, hex_color2: str) -> None:
+    async def leds(
+        self, pulse: int, hex_color1: str, speed: int, hex_color2: str
+    ) -> None:
         """
         Control LED colors and animation.
 

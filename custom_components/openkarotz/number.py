@@ -1,4 +1,5 @@
 """Number entities for OpenKarotz integration."""
+
 import contextlib
 import logging
 
@@ -71,6 +72,7 @@ async def async_setup_entry(hass, entry, async_add_entities) -> None:
     entities = [
         KarotzNumber(
             coordinator,
+            hass,
             number_config,
         )
         for number_config in NUMBERS
@@ -84,10 +86,11 @@ class KarotzBaseNumber(CoordinatorEntity, RestoreEntity, NumberEntity):
 
     _attr_has_entity_name = True
 
-    def __init__(self, coordinator) -> None:
+    def __init__(self, coordinator, hass) -> None:
         """Initialize number entity."""
         super().__init__(coordinator)
         self.api = coordinator.api
+        self.hass = hass
 
     @property
     def device_info(self):
@@ -115,7 +118,7 @@ class KarotzBaseNumber(CoordinatorEntity, RestoreEntity, NumberEntity):
         self._attr_native_value = value
         self.async_write_ha_state()
 
-        # Call device-specific handlers for ear movement
+        # Call device-specific handlers for ear movement or LED settings
         await self._on_value_changed(value)
 
     async def _on_value_changed(self, value: float) -> None:
@@ -125,9 +128,9 @@ class KarotzBaseNumber(CoordinatorEntity, RestoreEntity, NumberEntity):
 class KarotzNumber(KarotzBaseNumber):
     """OpenKarotz number entity."""
 
-    def __init__(self, coordinator, number_config) -> None:
+    def __init__(self, coordinator, hass, number_config) -> None:
         """Initialize number entity."""
-        super().__init__(coordinator)
+        super().__init__(coordinator, hass)
 
         self.device_id = number_config["device_id"]
         self.device_name = number_config["device_name"]
@@ -142,10 +145,14 @@ class KarotzNumber(KarotzBaseNumber):
         self._attr_entity_category = number_config["entity_category"]
 
     async def _on_value_changed(self, value: float) -> None:
-        """Handle ear movement on value change."""
-        # Move ears when ear_left or ear_right changes
+        """Handle value change - move ears or apply LED settings."""
         if self.device_id == DEVICE_EARS:
             await self._move_ears_on_change()
+        elif self.device_id == DEVICE_LEDS:
+            # Apply LED settings immediately when pulse speed changes
+            from .led_helper import apply_led_settings
+
+            await apply_led_settings(self.hass, self.api)
 
     async def _move_ears_on_change(self) -> None:
         """Move ears when their values change."""

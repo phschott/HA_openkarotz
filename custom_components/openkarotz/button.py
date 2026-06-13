@@ -1,4 +1,5 @@
 """Button entities for OpenKarotz integration."""
+
 import logging
 
 import aiohttp
@@ -13,11 +14,7 @@ from .const import (
     DEVICE_PICTURE,
     DEVICE_SOUND,
     DOMAIN,
-    ENTITY_LED_COLOR_1,
-    ENTITY_LED_COLOR_2,
-    ENTITY_LED_PULSE,
     ENTITY_MOOD_SELECT,
-    ENTITY_PULSE_SPEED,
     ENTITY_TTS_TEXT,
     ENTITY_VOICE_SELECT,
     MANUFACTURER,
@@ -104,15 +101,12 @@ async def async_setup_entry(hass, entry, async_add_entities) -> None:
     """Set up button entities."""
     coordinator = hass.data[DOMAIN][entry.entry_id]["coordinator"]
 
-    entities = [
-        KarotzButton(coordinator, button_config) for button_config in BUTTONS
-    ]
+    entities = [KarotzButton(coordinator, button_config) for button_config in BUTTONS]
 
     entities.extend(
         [
             KarotzSpeakButton(coordinator),
             KarotzMoodButton(coordinator),
-            KarotzApplyLedsButton(coordinator),
         ]
     )
 
@@ -154,17 +148,8 @@ class KarotzBaseButton(CoordinatorEntity, ButtonEntity):
 
         try:
             return int(float(state.state))
-        except (ValueError, TypeError):
+        except ValueError, TypeError:
             return default
-
-    @staticmethod
-    def _light_to_hex(state) -> str:
-        """Convert light state to hex color."""
-        if state is None or state.state == "off":
-            return "000000"
-
-        rgb = state.attributes.get("rgb_color", (0, 0, 0))
-        return "{:02X}{:02X}{:02X}".format(*rgb)
 
 
 class KarotzButton(KarotzBaseButton):
@@ -188,9 +173,7 @@ class KarotzButton(KarotzBaseButton):
         try:
             await getattr(self.api, self.method)()
         except aiohttp.ClientResponseError as err:
-            _LOGGER.debug(
-                "API request completed despite header issue: %s", err
-            )
+            _LOGGER.debug("API request completed despite header issue: %s", err)
 
 
 class KarotzSpeakButton(KarotzBaseButton):
@@ -226,9 +209,7 @@ class KarotzSpeakButton(KarotzBaseButton):
         try:
             voice_id = voice_state.state.split("-")[0].strip()
             await self.api.tts(voice_id, text_state.state)
-            _LOGGER.debug(
-                "TTS speaking with voice %s: %s", voice_id, text_state.state
-            )
+            _LOGGER.debug("TTS speaking with voice %s: %s", voice_id, text_state.state)
         except Exception as err:
             _LOGGER.exception("Failed to speak TTS: %s", err)
 
@@ -260,42 +241,3 @@ class KarotzMoodButton(KarotzBaseButton):
             _LOGGER.debug("Playing mood %s", mood_id)
         except Exception as err:
             _LOGGER.exception("Failed to play mood: %s", err)
-
-class KarotzApplyLedsButton(KarotzBaseButton):
-    """Button to apply LED color and animation settings."""
-
-    device_id = DEVICE_LEDS
-    device_name = "OpenKarotz LEDs"
-
-    def __init__(self, coordinator) -> None:
-        """Initialize apply LEDs button."""
-        super().__init__(coordinator)
-        self._attr_translation_key = "apply_leds"
-        self._attr_unique_id = "openkarotz_apply_leds"
-        self._attr_icon = "mdi:lightbulb-on"
-
-    async def async_press(self) -> None:
-        """Apply LED colors and animation settings."""
-        color1_state = self._get_state(ENTITY_LED_COLOR_1)
-        color2_state = self._get_state(ENTITY_LED_COLOR_2)
-        speed = self._get_int_state(ENTITY_PULSE_SPEED, 0)
-        pulse_state = self._get_state(ENTITY_LED_PULSE)
-
-        # Determine pulse mode
-        pulse_value = 0 if pulse_state and pulse_state.state == "off" else 1
-
-        # Convert light states to hex colors
-        hex_color1 = self._light_to_hex(color1_state)
-        hex_color2 = self._light_to_hex(color2_state)
-
-        try:
-            await self.api.leds(pulse_value, hex_color1, speed, hex_color2)
-            _LOGGER.debug(
-                "LEDs applied: pulse=%s, color1=%s, speed=%s, color2=%s",
-                pulse_value,
-                hex_color1,
-                speed,
-                hex_color2,
-            )
-        except Exception as err:
-            _LOGGER.exception("Failed to apply LED settings: %s", err)

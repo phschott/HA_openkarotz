@@ -47,13 +47,9 @@ async def async_setup_entry(
     async_add_entities,
 ) -> None:
     """Setup OpenKarotz select entities."""
-    coordinator = hass.data[DOMAIN][entry.entry_id][
-        "coordinator"
-    ]
+    coordinator = hass.data[DOMAIN][entry.entry_id]["coordinator"]
 
-    fast_coordinator = hass.data[DOMAIN][entry.entry_id][
-        "fast_coordinator"
-    ]
+    fast_coordinator = hass.data[DOMAIN][entry.entry_id]["fast_coordinator"]
 
     entities = [
         KarotzSelect(
@@ -110,9 +106,7 @@ class KarotzBaseSelect(
     def device_info(self):
         """Return device info."""
         return {
-            "identifiers": {
-                (DOMAIN, self.device_id)
-            },
+            "identifiers": {(DOMAIN, self.device_id)},
             "name": self.device_name,
             "manufacturer": MANUFACTURER,
             "model": MODEL,
@@ -124,30 +118,18 @@ class KarotzBaseSelect(
         """Restore previous state."""
         await super().async_added_to_hass()
 
-        last_state = (
-            await self.async_get_last_state()
-        )
+        last_state = await self.async_get_last_state()
 
-        if (
-            last_state
-            and last_state.state
-            in self.options
-        ):
-            self._attr_current_option = (
-                last_state.state
-            )
+        if last_state and last_state.state in self.options:
+            self._attr_current_option = last_state.state
 
         elif self.options:
-            self._attr_current_option = (
-                self.options[0]
-            )
+            self._attr_current_option = self.options[0]
 
     @property
     def available(self):
         """Return availability."""
-        return (
-            self.coordinator.last_update_success
-        )
+        return self.coordinator.last_update_success
 
 
 class KarotzSelect(
@@ -172,17 +154,11 @@ class KarotzSelect(
 
         self.option_label = option_label
 
-        self.entity_id = (
-            f"select.openkarotz_{translation_key}"
-        )
+        self.entity_id = f"select.openkarotz_{translation_key}"
 
-        self._attr_translation_key = (
-            translation_key
-        )
+        self._attr_translation_key = translation_key
 
-        self._attr_unique_id = (
-            f"openkarotz_{translation_key}"
-        )
+        self._attr_unique_id = f"openkarotz_{translation_key}"
 
         self._attr_icon = icon
 
@@ -202,7 +178,6 @@ class KarotzSelect(
         options = []
 
         for item in values:
-
             item_id = item.get(
                 "id",
                 "unknown",
@@ -215,9 +190,7 @@ class KarotzSelect(
 
             label = html.unescape(label)
 
-            options.append(
-                f"{item_id} - {label}"
-            )
+            options.append(f"{item_id} - {label}")
 
         self._attr_options = options
 
@@ -226,13 +199,8 @@ class KarotzSelect(
     @property
     def current_option(self):
         """Return selected option."""
-        if (
-            self._attr_current_option
-            not in self.options
-        ) and self.options:
-            self._attr_current_option = (
-                self.options[0]
-            )
+        if (self._attr_current_option not in self.options) and self.options:
+            self._attr_current_option = self.options[0]
 
         return self._attr_current_option
 
@@ -248,6 +216,7 @@ class KarotzSelect(
 
         self.async_write_ha_state()
 
+
 class OpenKarotzSnapshotSelect(
     KarotzBaseSelect,
 ):
@@ -257,17 +226,11 @@ class OpenKarotzSnapshotSelect(
     def __init__(self, coordinator) -> None:
         super().__init__(coordinator)
 
-        self.entity_id = (
-            "select.openkarotz_snapshots"
-        )
+        self.entity_id = "select.openkarotz_snapshots"
 
-        self._attr_translation_key = (
-            "snapshots"
-        )
+        self._attr_translation_key = "snapshots"
 
-        self._attr_unique_id = (
-            "openkarotz_snapshots"
-        )
+        self._attr_unique_id = "openkarotz_snapshots"
 
         self._attr_icon = "mdi:camera"
 
@@ -275,9 +238,7 @@ class OpenKarotzSnapshotSelect(
     def device_info(self):
         """Return device info."""
         return {
-            "identifiers": {
-                (DOMAIN, self.device_id)
-            },
+            "identifiers": {(DOMAIN, self.device_id)},
             "name": self.device_name,
             "manufacturer": MANUFACTURER,
             "model": MODEL,
@@ -288,9 +249,7 @@ class OpenKarotzSnapshotSelect(
 
         options = [
             snap["id"]
-            for snap in self.coordinator.data
-                .get("snapshots", {})
-                .get("snapshots", [])
+            for snap in self.coordinator.data.get("snapshots", {}).get("snapshots", [])
             if "id" in snap
         ]
 
@@ -301,13 +260,8 @@ class OpenKarotzSnapshotSelect(
     @property
     def current_option(self):
 
-        if (
-            self._attr_current_option
-            not in self.options
-        ) and self.options:
-            self._attr_current_option = (
-                self.options[0]
-            )
+        if (self._attr_current_option not in self.options) and self.options:
+            self._attr_current_option = self.options[0]
 
         return self._attr_current_option
 
@@ -331,9 +285,8 @@ class OpenKarotzSnapshotSelect(
         )
 
         return {
-            "snapshot_url":
-                f"http://{self.api.host}"
-                #f"http://karotz.schott.io:8080"
-                f"/cgi-bin/snapshot_get"
-                f"?filename=snapshot_{filename}"
+            "snapshot_url": f"http://{self.api.host}"
+            # f"http://karotz.schott.io:8080"
+            f"/cgi-bin/snapshot_get"
+            f"?filename=snapshot_{filename}"
         }

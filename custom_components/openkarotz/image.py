@@ -74,7 +74,8 @@ async def async_setup_entry(
                                 break
                             _LOGGER.warning(
                                 "Échec téléchargement (tentative %s) : HTTP %s",
-                                attempt, resp.status,
+                                attempt,
+                                resp.status,
                             )
                             msg = f"HTTP {resp.status}"
                             raise aiohttp.ClientError(msg)
@@ -85,7 +86,8 @@ async def async_setup_entry(
                         else:
                             _LOGGER.exception(
                                 "Impossible de télécharger après %s tentatives : %s",
-                                max_retries, err,
+                                max_retries,
+                                err,
                             )
 
                 if data:

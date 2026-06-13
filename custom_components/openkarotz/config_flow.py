@@ -3,6 +3,7 @@ from homeassistant import config_entries
 
 DOMAIN = "openkarotz"
 
+
 class KarotzConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     VERSION = 1
 
@@ -13,9 +14,11 @@ class KarotzConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 data=user_input,
             )
 
-        schema = vol.Schema({
-            vol.Required("host"): str,
-        })
+        schema = vol.Schema(
+            {
+                vol.Required("host"): str,
+            }
+        )
 
         return self.async_show_form(
             step_id="user",
