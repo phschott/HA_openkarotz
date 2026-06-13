@@ -48,6 +48,27 @@
       "mood": {
         "name": "Apply Mood"
       },
+      "sound_play": {
+        "name": "Resume"
+      },
+      "sound_pause": {
+        "name": "Pause"
+      },
+      "sound_next": {
+        "name": "Next"
+      },
+      "sound_prev": {
+        "name": "Previous"
+      },
+      "play_sound": {
+        "name": "Play Sound"
+      },
+      "play_radio": {
+        "name": "Play Radio"
+      },
+      "stop_audio": {
+        "name": "Stop"
+      },
       "move_ears": {
         "name": "Move Ears"
       },
@@ -115,6 +136,9 @@
       },
       "radios": {
         "name": "Radios"
+      },
+      "sound": {
+        "name": "Sound"
       }
     },
     "switch": {

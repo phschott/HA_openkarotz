@@ -36,6 +36,7 @@ class KarotzCoordinator(DataUpdateCoordinator):
                 "voices": await self.api.get_voices(),
                 "moods": await self.api.get_moods(),
                 "radios": await self.api.get_radios(),
+                "sounds": await self.api.get_sounds(),
             }
         except Exception as err:
             msg = f"Error communicating with API: {err}"
