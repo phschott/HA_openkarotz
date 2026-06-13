@@ -69,13 +69,6 @@ BUTTONS = [
         "entity_category": None,
     },
     {
-        "method": "sound_play",
-        "icon": "mdi:play",
-        "device_id": DEVICE_SOUND,
-        "device_name": "OpenKarotz Sound",
-        "entity_category": None,
-    },
-    {
         "method": "sound_pause",
         "icon": "mdi:pause",
         "device_id": DEVICE_SOUND,
@@ -83,15 +76,8 @@ BUTTONS = [
         "entity_category": None,
     },
     {
-        "method": "sound_next",
-        "icon": "mdi:skip-next",
-        "device_id": DEVICE_SOUND,
-        "device_name": "OpenKarotz Sound",
-        "entity_category": None,
-    },
-    {
-        "method": "sound_prev",
-        "icon": "mdi:skip-previous",
+        "method": "sound_quit",
+        "icon": "mdi:stop",
         "device_id": DEVICE_SOUND,
         "device_name": "OpenKarotz Sound",
         "entity_category": None,
@@ -139,7 +125,6 @@ async def async_setup_entry(hass, entry, async_add_entities) -> None:
             KarotzMoodButton(coordinator),
             KarotzPlaySoundButton(coordinator),
             KarotzPlayRadioButton(coordinator),
-            KarotzStopAudioButton(coordinator),
         ]
     )
 
@@ -346,22 +331,3 @@ class KarotzPlayRadioButton(KarotzBaseButton):
             _LOGGER.exception("Failed to play radio: %s", err)
 
 
-class KarotzStopAudioButton(KarotzBaseButton):
-    """Button to stop audio playback."""
-
-    device_id = DEVICE_SOUND
-    device_name = "OpenKarotz Sound"
-
-    def __init__(self, coordinator) -> None:
-        super().__init__(coordinator)
-        self._attr_translation_key = "stop_audio"
-        self._attr_unique_id = "openkarotz_stop_audio"
-        self._attr_icon = "mdi:stop"
-
-    async def async_press(self) -> None:
-        """Stop audio playback."""
-        try:
-            await self.api.sound_control("quit")
-            _LOGGER.debug("Audio stopped")
-        except Exception as err:
-            _LOGGER.exception("Failed to stop audio: %s", err)
