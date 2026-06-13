@@ -24,6 +24,7 @@ DEVICE_PICTURE = "karotz_picture"
 ENTITY_VOICE_SELECT = "select.openkarotz_voice"
 ENTITY_MOOD_SELECT = "select.openkarotz_mood"
 ENTITY_RADIOS_SELECT = "select.openkarotz_radios"
+ENTITY_SOUND_SELECT = "select.openkarotz_sound"
 ENTITY_SNAPSHOTS_SELECT = "select.openkarotz_snapshots"
 
 ENTITY_EAR_LEFT = "number.openkarotz_ear_left"

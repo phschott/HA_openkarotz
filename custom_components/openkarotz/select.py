@@ -33,10 +33,17 @@ SELECTS = [
     ),
     (
         "radios",
-        "streams",
+        "radios",
         "streams",
         "name",
         "mdi:radio",
+    ),
+    (
+        "sound",
+        "sounds",
+        "sounds",
+        None,
+        "mdi:music-note",
     ),
 ]
 
@@ -178,19 +185,13 @@ class KarotzSelect(
         options = []
 
         for item in values:
-            item_id = item.get(
-                "id",
-                "unknown",
-            )
+            item_id = str(item.get("id", "unknown"))
 
-            label = item.get(
-                self.option_label,
-                "Unknown",
-            )
-
-            label = html.unescape(label)
-
-            options.append(f"{item_id} - {label}")
+            if self.option_label:
+                label = html.unescape(item.get(self.option_label, item_id))
+                options.append(f"{item_id} - {label}" if label != item_id else item_id)
+            else:
+                options.append(item_id)
 
         self._attr_options = options
 

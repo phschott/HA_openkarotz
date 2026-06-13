@@ -15,6 +15,8 @@ from .const import (
     DEVICE_SOUND,
     DOMAIN,
     ENTITY_MOOD_SELECT,
+    ENTITY_RADIOS_SELECT,
+    ENTITY_SOUND_SELECT,
     ENTITY_TTS_TEXT,
     ENTITY_VOICE_SELECT,
     MANUFACTURER,
@@ -67,6 +69,20 @@ BUTTONS = [
         "entity_category": None,
     },
     {
+        "method": "sound_pause",
+        "icon": "mdi:pause",
+        "device_id": DEVICE_SOUND,
+        "device_name": "OpenKarotz Sound",
+        "entity_category": None,
+    },
+    {
+        "method": "sound_quit",
+        "icon": "mdi:stop",
+        "device_id": DEVICE_SOUND,
+        "device_name": "OpenKarotz Sound",
+        "entity_category": None,
+    },
+    {
         "method": "random_mood",
         "icon": "mdi:emoticon-outline",
         "device_id": DEVICE_SOUND,
@@ -107,6 +123,8 @@ async def async_setup_entry(hass, entry, async_add_entities) -> None:
         [
             KarotzSpeakButton(coordinator),
             KarotzMoodButton(coordinator),
+            KarotzPlaySoundButton(coordinator),
+            KarotzPlayRadioButton(coordinator),
         ]
     )
 
@@ -241,3 +259,75 @@ class KarotzMoodButton(KarotzBaseButton):
             _LOGGER.debug("Playing mood %s", mood_id)
         except Exception as err:
             _LOGGER.exception("Failed to play mood: %s", err)
+
+
+class KarotzPlaySoundButton(KarotzBaseButton):
+    """Button to play the selected local sound."""
+
+    device_id = DEVICE_SOUND
+    device_name = "OpenKarotz Sound"
+
+    def __init__(self, coordinator) -> None:
+        super().__init__(coordinator)
+        self._attr_translation_key = "play_sound"
+        self._attr_unique_id = "openkarotz_play_sound"
+        self._attr_icon = "mdi:music-note"
+
+    async def async_press(self) -> None:
+        """Play the selected local sound."""
+        sound_state = self._get_state(ENTITY_SOUND_SELECT)
+
+        if sound_state is None:
+            _LOGGER.warning("No sound selected")
+            return
+
+        try:
+            sound_id = sound_state.state.strip()
+            await self.api.play_sound(sound_id)
+            _LOGGER.debug("Playing sound %s", sound_id)
+        except Exception as err:
+            _LOGGER.exception("Failed to play sound: %s", err)
+
+
+class KarotzPlayRadioButton(KarotzBaseButton):
+    """Button to play the selected radio stream."""
+
+    device_id = DEVICE_SOUND
+    device_name = "OpenKarotz Sound"
+
+    def __init__(self, coordinator) -> None:
+        super().__init__(coordinator)
+        self._attr_translation_key = "play_radio"
+        self._attr_unique_id = "openkarotz_play_radio"
+        self._attr_icon = "mdi:radio"
+
+    async def async_press(self) -> None:
+        """Play the selected radio stream."""
+        radio_state = self._get_state(ENTITY_RADIOS_SELECT)
+
+        if radio_state is None:
+            _LOGGER.warning("No radio selected")
+            return
+
+        try:
+            radio_id_str = radio_state.state.split(" - ")[0].strip()
+            streams = (
+                self.coordinator.data.get("radios", {}).get("streams", [])
+                if self.coordinator.data
+                else []
+            )
+            stream = next(
+                (s for s in streams if str(s.get("id")) == radio_id_str),
+                None,
+            )
+
+            if stream is None:
+                _LOGGER.warning("Radio stream not found for id %s", radio_id_str)
+                return
+
+            await self.api.sound_url(stream["url"])
+            _LOGGER.debug("Playing radio %s (%s)", stream.get("name"), stream["url"])
+        except Exception as err:
+            _LOGGER.exception("Failed to play radio: %s", err)
+
+

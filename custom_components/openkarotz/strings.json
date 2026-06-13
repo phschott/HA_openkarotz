@@ -48,6 +48,18 @@
       "mood": {
         "name": "Apply Mood"
       },
+      "sound_pause": {
+        "name": "Pause / Resume"
+      },
+      "play_sound": {
+        "name": "Play Sound"
+      },
+      "play_radio": {
+        "name": "Play Radio"
+      },
+      "sound_quit": {
+        "name": "Stop"
+      },
       "move_ears": {
         "name": "Move Ears"
       },
@@ -115,6 +127,9 @@
       },
       "radios": {
         "name": "Radios"
+      },
+      "sound": {
+        "name": "Sound"
       }
     },
     "switch": {

@@ -140,9 +140,25 @@ class KarotzAPI:
     # =====================
     # AUDIO / RADIOS
     # =====================
+    async def get_sounds(self):
+        """Get list of available local sounds."""
+        return await self._get("/cgi-bin/sound_list")
+
+    async def play_sound(self, sound_id: str) -> None:
+        """Play a local sound by id."""
+        await self._get(f"/cgi-bin/sound?id={sound_id}")
+
     async def sound_url(self, karotz_stream_url: str) -> None:
         """Play audio from URL."""
         await self._get(f"/cgi-bin/sound?url={karotz_stream_url}")
+
+    async def sound_pause(self) -> None:
+        """Pause audio playback."""
+        await self._get("/cgi-bin/sound_control?cmd=pause")
+
+    async def sound_quit(self) -> None:
+        """Stop audio playback."""
+        await self._get("/cgi-bin/sound_control?cmd=quit")
 
     async def sound_control(self, cmd: str) -> None:
         """
