@@ -1,0 +1,56 @@
+blueprint:
+  name: "OpenKarotz - Daily Schedule"
+  description: >
+    Wake up and put the rabbit to sleep at scheduled times each day.
+  domain: automation
+  author: phschott
+  input:
+    wake_time:
+      name: Wake time
+      description: Time to wake the rabbit up each day.
+      selector:
+        time: {}
+    sleep_time:
+      name: Sleep time
+      description: Time to put the rabbit to sleep each day.
+      selector:
+        time: {}
+    wakeup_button:
+      name: Wake up button
+      description: The OpenKarotz "Wake Up" button entity.
+      selector:
+        entity:
+          domain: button
+          integration: openkarotz
+    sleep_button:
+      name: Sleep button
+      description: The OpenKarotz "Sleep" button entity.
+      selector:
+        entity:
+          domain: button
+          integration: openkarotz
+
+trigger:
+  - platform: time
+    at: !input wake_time
+    id: wake
+  - platform: time
+    at: !input sleep_time
+    id: sleep
+
+action:
+  - choose:
+      - conditions:
+          - condition: trigger
+            id: wake
+        sequence:
+          - service: button.press
+            target:
+              entity_id: !input wakeup_button
+      - conditions:
+          - condition: trigger
+            id: sleep
+        sequence:
+          - service: button.press
+            target:
+              entity_id: !input sleep_button

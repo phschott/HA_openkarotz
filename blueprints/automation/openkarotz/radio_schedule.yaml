@@ -1,0 +1,77 @@
+blueprint:
+  name: "OpenKarotz - Radio Schedule"
+  description: >
+    Start a radio station at a scheduled time and stop it at another time.
+    The radio station must match the option format shown in the Radios select entity
+    (e.g. "29 - Radio NRJ").
+  domain: automation
+  author: phschott
+  input:
+    start_time:
+      name: Start time
+      description: Time to start the radio.
+      selector:
+        time: {}
+    stop_time:
+      name: Stop time
+      description: Time to stop the radio.
+      selector:
+        time: {}
+    radio_station:
+      name: Radio station
+      description: >
+        The radio station option as shown in the Radios select entity,
+        e.g. "29 - Radio NRJ" or "2 - BBC Radio 1".
+      selector:
+        text: {}
+    radio_select:
+      name: Radios selector entity
+      description: The OpenKarotz Radios select entity.
+      selector:
+        entity:
+          domain: select
+          integration: openkarotz
+    play_button:
+      name: Play Radio button
+      description: The OpenKarotz "Play Radio" button entity.
+      selector:
+        entity:
+          domain: button
+          integration: openkarotz
+    stop_button:
+      name: Stop button
+      description: The OpenKarotz "Stop" button entity.
+      selector:
+        entity:
+          domain: button
+          integration: openkarotz
+
+trigger:
+  - platform: time
+    at: !input start_time
+    id: start
+  - platform: time
+    at: !input stop_time
+    id: stop
+
+action:
+  - choose:
+      - conditions:
+          - condition: trigger
+            id: start
+        sequence:
+          - service: select.select_option
+            target:
+              entity_id: !input radio_select
+            data:
+              option: !input radio_station
+          - service: button.press
+            target:
+              entity_id: !input play_button
+      - conditions:
+          - condition: trigger
+            id: stop
+        sequence:
+          - service: button.press
+            target:
+              entity_id: !input stop_button

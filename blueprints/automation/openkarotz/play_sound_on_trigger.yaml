@@ -1,0 +1,72 @@
+blueprint:
+  name: "OpenKarotz - Play Sound on Trigger"
+  description: >
+    Play a local sound when an entity changes to a specific state.
+    Available sounds: bip1, bling, flush, install_ok, jet1, laser_15, merde,
+    ready, rfid_error, rfid_ok, saut1, start, twang_01, twang_04.
+  domain: automation
+  author: phschott
+  input:
+    trigger_entity:
+      name: Trigger entity
+      description: The entity that triggers the sound.
+      selector:
+        entity: {}
+    trigger_state:
+      name: Trigger state
+      description: The state value that triggers the sound (e.g. "on", "open").
+      selector:
+        text: {}
+    sound_name:
+      name: Sound name
+      description: >
+        The ID of the local sound to play.
+        Available: bip1, bling, flush, install_ok, jet1, laser_15, merde,
+        ready, rfid_error, rfid_ok, saut1, start, twang_01, twang_04.
+      default: "bip1"
+      selector:
+        select:
+          options:
+            - "bip1"
+            - "bling"
+            - "flush"
+            - "install_ok"
+            - "jet1"
+            - "laser_15"
+            - "merde"
+            - "ready"
+            - "rfid_error"
+            - "rfid_ok"
+            - "saut1"
+            - "start"
+            - "twang_01"
+            - "twang_04"
+    sound_select:
+      name: Sound selector entity
+      description: The OpenKarotz Sound select entity.
+      selector:
+        entity:
+          domain: select
+          integration: openkarotz
+    play_button:
+      name: Play Sound button
+      description: The OpenKarotz "Play Sound" button entity.
+      selector:
+        entity:
+          domain: button
+          integration: openkarotz
+
+trigger:
+  - platform: state
+    entity_id: !input trigger_entity
+    to: !input trigger_state
+
+action:
+  - service: select.select_option
+    target:
+      entity_id: !input sound_select
+    data:
+      option: !input sound_name
+  - service: button.press
+    target:
+      entity_id: !input play_button
