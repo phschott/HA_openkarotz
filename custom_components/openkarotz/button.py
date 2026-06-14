@@ -166,7 +166,7 @@ class KarotzBaseButton(CoordinatorEntity, ButtonEntity):
 
         try:
             return int(float(state.state))
-        except ValueError, TypeError:
+        except (ValueError, TypeError):
             return default
 
 
