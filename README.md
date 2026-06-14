@@ -136,9 +136,26 @@ The rabbit's webcam is not exposed as a native entity. Use Home Assistant's buil
 
 | Data | Interval |
 |---|---|
-| Status (LED, sensors) | 10 seconds |
-| Snapshots | 10 seconds |
+| Status (LED, sensors) | 5 seconds |
+| Snapshots | 5 seconds |
 | Voices, moods, radios | 4 hours |
+
+---
+
+## Sample Dashboard
+
+A ready-to-use dashboard (`dashboard.yaml`) is included in the repository. It covers four tabs: **Apparence** (LEDs, voice, ears), **Photos** (camera & snapshots), **Sounds** (local sounds & radios), and **État** (device status & controls).
+
+> **Note:** The entity IDs in the dashboard use Home Assistant's auto-generated names, which depend on your HA language setting. If your HA is in French the IDs match as-is; otherwise adjust them to your locale.
+
+### Import the dashboard
+
+1. In Home Assistant, go to **Settings → Dashboards**
+2. Click **+ Add Dashboard**, give it a name (e.g. *Karotz*) and confirm
+3. Open the new dashboard, click the **pencil icon** (Edit) in the top-right corner
+4. Click the **three-dot menu** → **Raw configuration editor**
+5. Select all the existing content and replace it with the contents of `dashboard.yaml`
+6. Click **Save** then **Done**
 
 ---
 

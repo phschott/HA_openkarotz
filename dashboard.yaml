@@ -1,0 +1,241 @@
+  title: Karotz Dashboard
+  views:
+    - title: Apparence
+      path: karotz
+      type: sections
+      max_columns: 3
+      sections:
+        - type: grid
+          cards:
+            - type: heading
+              heading: Color
+              heading_style: title
+            - type: entities
+              entities:
+                - entity: switch.openkarotz_led_pulse
+                - entity: number.openkarotz_pulse_speed
+                - entity: light.openkarotz_color_1
+                - entity: light.openkarotz_color_2
+        - type: grid
+          cards:
+            - type: heading
+              heading: Voice
+              heading_style: title
+            - type: entities
+              entities:
+                - entity: select.openkarotz_voice
+                - entity: text.openkarotz_tts
+                - entity: button.openkarotz_sound_parler
+            - type: entities
+              entities:
+                - entity: select.openkarotz_mood
+                - entity: button.openkarotz_sound_appliquer_une_humeur
+            - type: button
+              show_name: true
+              show_icon: true
+              entity: button.openkarotz_sound_horloge
+              tap_action:
+                action: call-service
+                service: button.press
+                target:
+                  entity_id: button.openkarotz_sound_horloge
+            - type: button
+              show_name: true
+              show_icon: true
+              entity: button.openkarotz_sound_humeur_aleatoire
+              tap_action:
+                action: call-service
+                service: button.press
+                target:
+                  entity_id: button.openkarotz_sound_humeur_aleatoire
+        - type: grid
+          cards:
+            - type: heading
+              heading: Ears
+              heading_style: title
+            - type: entities
+              entities:
+                - entity: number.openkarotz_ear_left
+                - entity: number.openkarotz_ear_right
+            - type: button
+              show_name: true
+              show_icon: true
+              entity: button.openkarotz_ears_oreilles_aleatoires
+              icon: mdi:rabbit-variant-outline
+              tap_action:
+                action: call-service
+                service: button.press
+                target:
+                  entity_id: button.openkarotz_ears_oreilles_aleatoires
+            - type: button
+              show_name: true
+              show_icon: true
+              entity: button.openkarotz_ears_reinitialiser_les_oreilles
+              icon: mdi:restore
+              tap_action:
+                action: call-service
+                service: button.press
+                target:
+                  entity_id: button.openkarotz_ears_reinitialiser_les_oreilles
+
+    - type: sections
+      max_columns: 4
+      title: Photos
+      path: photo
+      sections:
+        - type: grid
+          cards:
+            - type: heading
+              heading: Picture
+              heading_style: title
+            - type: button
+              show_name: true
+              show_icon: true
+              entity: button.openkarotz_picture_prendre_une_photo
+              icon: mdi:camera
+              tap_action:
+                action: call-service
+                service: button.press
+                target:
+                  entity_id: button.openkarotz_picture_prendre_une_photo
+            - type: button
+              show_name: true
+              show_icon: true
+              entity: button.openkarotz_picture_supprimer_les_photos
+              icon: mdi:trash-can
+              tap_action:
+                action: call-service
+                service: button.press
+                target:
+                  entity_id: button.openkarotz_picture_supprimer_les_photos
+            - type: tile
+              grid_options:
+                columns: 6
+                rows: 2
+              entity: sensor.openkarotz_picture_snapshots
+              vertical: false
+              tap_action:
+                action: none
+              features_position: bottom
+        - type: grid
+          cards:
+            - type: heading
+              heading: Photos
+              heading_style: title
+            - type: entities
+              entities:
+                - entity: select.openkarotz_snapshots
+            - type: picture
+              image_entity: image.openkarotz_picture
+
+    - type: sections
+      max_columns: 4
+      title: Sounds
+      path: sounds
+      sections:
+        - type: grid
+          cards:
+            - type: heading
+              heading: Sounds
+              heading_style: title
+            - type: entities
+              entities:
+                - entity: select.openkarotz_sound
+            - type: button
+              entity: button.salon_openkarotz_sound_play_sound
+              tap_action:
+                action: call-service
+                service: button.press
+                target:
+                  entity_id: button.salon_openkarotz_sound_play_sound
+        - type: grid
+          cards:
+            - type: heading
+              heading: Radios
+              heading_style: title
+            - type: entities
+              entities:
+                - entity: select.openkarotz_radios
+            - type: button
+              entity: button.salon_openkarotz_sound_play_radio
+              tap_action:
+                action: call-service
+                service: button.press
+                target:
+                  entity_id: button.salon_openkarotz_sound_play_radio
+            - type: tile
+              entity: button.salon_openkarotz_sound_pause
+              tap_action:
+                action: call-service
+                service: button.press
+                target:
+                  entity_id: button.salon_openkarotz_sound_pause
+            - type: tile
+              entity: button.salon_openkarotz_sound_stop_2
+              tap_action:
+                action: call-service
+                service: button.press
+                target:
+                  entity_id: button.salon_openkarotz_sound_stop_2
+
+    - type: sections
+      max_columns: 4
+      title: "État"
+      path: etat
+      sections:
+        - type: grid
+          cards:
+            - type: heading
+              heading: Status
+              heading_style: title
+            - type: tile
+              entity: sensor.openkarotz_version
+              vertical: false
+              features_position: bottom
+            - type: tile
+              entity: sensor.openkarotz_espace_utilise
+              vertical: false
+              features_position: bottom
+            - type: button
+              show_name: true
+              show_icon: true
+              entity: button.openkarotz_mettre_en_veille
+              tap_action:
+                action: call-service
+                service: button.press
+                target:
+                  entity_id: button.openkarotz_mettre_en_veille
+            - type: button
+              show_name: true
+              show_icon: true
+              entity: button.openkarotz_reveiller
+              tap_action:
+                action: call-service
+                service: button.press
+                target:
+                  entity_id: button.openkarotz_reveiller
+            - type: button
+              show_name: true
+              show_icon: true
+              entity: button.openkarotz_redemarrer
+              tap_action:
+                action: call-service
+                service: button.press
+                target:
+                  entity_id: button.openkarotz_redemarrer
+            - type: tile
+              entity: sensor.openkarotz_nombre_de_sons
+              vertical: false
+              features_position: bottom
+            - type: tile
+              entity: sensor.openkarotz_nombre_de_tags
+              vertical: false
+              features_position: bottom
+            - type: tile
+              entity: sensor.openkarotz_nombre_d_histoires
+              vertical: false
+              features_position: bottom
+            - type: tile
+              entity: sensor.openkarotz_nombre_d_ambiances
+              vertical: false
+              features_position: bottom
