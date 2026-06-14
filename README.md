@@ -174,6 +174,12 @@ Five blueprints are included and appear directly in **Settings → Automations �
 
 ### Installing a blueprint
 
+Blueprints are automatically copied to your HA config directory (`blueprints/automation/openkarotz/`) the first time the integration loads after installation. They will appear in **Settings → Automations → Blueprints** without any manual step.
+
+> If a blueprint file already exists it will not be overwritten, so any customisation you make is preserved across updates.
+
+To create an automation from a blueprint:
+
 1. Go to **Settings → Automations → Blueprints**
 2. Find the OpenKarotz blueprint you want
 3. Click **Create Automation**

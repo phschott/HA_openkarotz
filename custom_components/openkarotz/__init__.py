@@ -1,5 +1,7 @@
 """OpenKarotz integration for Home Assistant."""
 
+import shutil
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 from .api import KarotzAPI
@@ -11,8 +13,21 @@ if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
 
 
+def _install_blueprints(hass: HomeAssistant) -> None:
+    """Copy bundled blueprints to the HA config directory (skip if already present)."""
+    src = Path(__file__).parent / "blueprints"
+    dest = Path(hass.config.config_dir) / "blueprints" / "automation" / "openkarotz"
+    dest.mkdir(parents=True, exist_ok=True)
+    for blueprint in src.glob("*.yaml"):
+        target = dest / blueprint.name
+        if not target.exists():
+            shutil.copy2(blueprint, target)
+
+
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up OpenKarotz integration from config entry."""
+    _install_blueprints(hass)
+
     # Initialize API client
     api = KarotzAPI(entry.data["host"])
 
