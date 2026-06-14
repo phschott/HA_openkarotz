@@ -3,9 +3,9 @@
     "step": {
       "user": {
         "title": "Connexion OpenKarotz",
-        "description": "Veuillez saisir l'adresse IP locale de votre OpenKarotz.",
+        "description": "Veuillez saisir l'adresse IP locale ou le nom d'hôte de votre OpenKarotz.",
         "data": {
-          "host": "Adresse IP / Hostname"
+          "host": "Adresse IP / Nom d'hôte"
         }
       }
     }
@@ -13,7 +13,7 @@
   "entity": {
     "button": {
       "reboot": {
-        "name": "Redémarrer!"
+        "name": "Redémarrer"
       },
       "wakeup": {
         "name": "Réveiller"
@@ -47,6 +47,18 @@
       },
       "mood": {
         "name": "Appliquer une humeur"
+      },
+      "sound_pause": {
+        "name": "Pause / Reprendre"
+      },
+      "play_sound": {
+        "name": "Jouer un son"
+      },
+      "play_radio": {
+        "name": "Jouer la radio"
+      },
+      "sound_quit": {
+        "name": "Arrêter"
       },
       "move_ears": {
         "name": "Déplacer les oreilles"
@@ -84,7 +96,7 @@
         "name": "Nombre d'ambiances"
       },
       "snapshots": {
-        "name": "Snapshots"
+        "name": "Photos"
       }
     },
     "light": {
@@ -115,6 +127,12 @@
       },
       "radios": {
         "name": "Radios"
+      },
+      "sound": {
+        "name": "Son"
+      },
+      "snapshots": {
+        "name": "Photos"
       }
     },
     "switch": {
