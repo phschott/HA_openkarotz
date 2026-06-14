@@ -41,7 +41,7 @@ def get_pulse_speed(hass: HomeAssistant) -> int:
 
     try:
         return int(float(speed_state.state))
-    except ValueError, TypeError:
+    except (ValueError, TypeError):
         return 0
 
 
