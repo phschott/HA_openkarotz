@@ -136,9 +136,90 @@ The rabbit's webcam is not exposed as a native entity. Use Home Assistant's buil
 
 | Data | Interval |
 |---|---|
-| Status (LED, sensors) | 10 seconds |
-| Snapshots | 10 seconds |
+| Status (LED, sensors) | 5 seconds |
+| Snapshots | 5 seconds |
 | Voices, moods, radios | 4 hours |
+
+---
+
+## Sample Dashboard
+
+A ready-to-use dashboard (`dashboard.yaml`) is included in the repository. It covers four tabs: **Apparence** (LEDs, voice, ears), **Photos** (camera & snapshots), **Sounds** (local sounds & radios), and **État** (device status & controls).
+
+> **Note:** The entity IDs in the dashboard use Home Assistant's auto-generated names, which depend on your HA language setting. If your HA is in French the IDs match as-is; otherwise adjust them to your locale.
+
+### Import the dashboard
+
+1. In Home Assistant, go to **Settings → Dashboards**
+2. Click **+ Add Dashboard**, give it a name (e.g. *Karotz*) and confirm
+3. Open the new dashboard, click the **pencil icon** (Edit) in the top-right corner
+4. Click the **three-dot menu** → **Raw configuration editor**
+5. Select all the existing content and replace it with the contents of `dashboard.yaml`
+6. Click **Save** then **Done**
+
+---
+
+## Automation Blueprints
+
+Five blueprints are included and appear directly in **Settings → Automations → Blueprints** after installation.
+
+| Blueprint | Description |
+|---|---|
+| **Daily Schedule** | Wake up and put the rabbit to sleep at fixed times |
+| **LED Color on State** | Change LED color when an entity reaches a specific state |
+| **Announce on Trigger** | Speak a TTS message when something happens |
+| **Play Sound on Trigger** | Play a local sound when something happens |
+| **Radio Schedule** | Start and stop a radio station at scheduled times |
+| **LED on Persistent Notifications** | Green = no notifications, Red = at least one active |
+
+### Installing a blueprint
+
+1. Go to **Settings → Automations → Blueprints**
+2. Find the OpenKarotz blueprint you want
+3. Click **Create Automation**
+4. Fill in the fields and save
+
+### Understanding the "Trigger state" field
+
+Several blueprints (**LED Color on State**, **Announce on Trigger**, **Play Sound on Trigger**) ask for a **Trigger entity** and a **Trigger state**. The automation fires when the entity's state equals that value exactly.
+
+**Binary states** — use the raw HA state string:
+
+| Situation | Trigger state |
+|---|---|
+| A switch / light turns on | `on` |
+| A switch / light turns off | `off` |
+| A person arrives home | `home` |
+| A person leaves | `not_home` |
+| A door sensor opens | `open` |
+| An alarm is armed | `armed_away` |
+
+**Numeric sensors** — enter the exact number as a string. This only matches that precise value, which is rarely what you want for a sensor:
+
+| Situation | Trigger state |
+|---|---|
+| Temperature equals 21 | `21` |
+| Battery equals 10 % | `10` |
+
+For numeric comparisons (**greater than**, **less than**, **above a threshold**), the Trigger state field is not sufficient on its own. Use a **Template sensor** helper instead:
+
+1. Go to **Settings → Devices & Services → Helpers → Create helper → Template**
+2. Create a binary sensor with a template such as:
+
+```jinja2
+{{ states('sensor.temperature_living_room') | float > 25 }}
+```
+
+3. Use that helper as the **Trigger entity** and set **Trigger state** to `on` (true) or `off` (false).
+
+**Examples of template helpers for numeric thresholds:**
+
+| Goal | Template |
+|---|---|
+| Temperature above 25 °C | `{{ states('sensor.temperature') \| float > 25 }}` |
+| Temperature below 18 °C | `{{ states('sensor.temperature') \| float < 18 }}` |
+| Battery below 20 % | `{{ states('sensor.battery') \| int < 20 }}` |
+| More than 3 people home | `{{ states('zone.home') \| int > 3 }}` |
 
 ---
 

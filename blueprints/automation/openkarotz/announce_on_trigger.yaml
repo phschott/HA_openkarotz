@@ -1,0 +1,62 @@
+blueprint:
+  name: "OpenKarotz - Announce on Trigger"
+  description: >
+    Make the rabbit speak a TTS message when an entity changes to a specific state.
+    The message can include the new state value using {{ trigger.to_state.state }}.
+  domain: automation
+  author: phschott
+  input:
+    trigger_entity:
+      name: Trigger entity
+      description: The entity that triggers the announcement.
+      selector:
+        entity: {}
+    trigger_state:
+      name: Trigger state
+      description: The state value that triggers the announcement (e.g. "on", "home").
+      selector:
+        text: {}
+    message:
+      name: Message
+      description: >
+        The text to speak. You can use templates, for example:
+        "The alarm is now {{ trigger.to_state.state }}"
+      selector:
+        text:
+          multiline: true
+    voice_select:
+      name: Voice selector entity
+      description: The OpenKarotz Voice select entity.
+      selector:
+        entity:
+          domain: select
+          integration: openkarotz
+    tts_text_entity:
+      name: TTS text entity
+      description: The OpenKarotz TTS text input entity.
+      selector:
+        entity:
+          domain: text
+          integration: openkarotz
+    speak_button:
+      name: Speak button
+      description: The OpenKarotz "Speak" button entity.
+      selector:
+        entity:
+          domain: button
+          integration: openkarotz
+
+trigger:
+  - platform: state
+    entity_id: !input trigger_entity
+    to: !input trigger_state
+
+action:
+  - service: text.set_value
+    target:
+      entity_id: !input tts_text_entity
+    data:
+      value: !input message
+  - service: button.press
+    target:
+      entity_id: !input speak_button

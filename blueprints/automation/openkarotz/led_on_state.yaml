@@ -1,0 +1,64 @@
+blueprint:
+  name: "OpenKarotz - LED Color on State"
+  description: >
+    Change the rabbit's LED color when an entity reaches a specific state.
+    Useful to reflect alarm status, presence, weather alerts, and more.
+  domain: automation
+  author: phschott
+  input:
+    trigger_entity:
+      name: Trigger entity
+      description: The entity whose state change triggers the LED update.
+      selector:
+        entity: {}
+    trigger_state:
+      name: Trigger state
+      description: The state value that triggers the color change (e.g. "on", "home", "armed_away").
+      selector:
+        text: {}
+    led_entity:
+      name: LED Color 1 entity
+      description: The OpenKarotz primary LED light entity.
+      selector:
+        entity:
+          domain: light
+          integration: openkarotz
+    led_color:
+      name: LED color
+      description: The RGB color to apply.
+      selector:
+        color_rgb: {}
+    enable_pulse:
+      name: Enable pulse
+      description: Turn on pulsing animation when the color changes.
+      default: false
+      selector:
+        boolean: {}
+    pulse_switch:
+      name: LED Pulse switch
+      description: The OpenKarotz LED Pulse switch entity. Only used if "Enable pulse" is on.
+      default: []
+      selector:
+        entity:
+          domain: switch
+          integration: openkarotz
+
+trigger:
+  - platform: state
+    entity_id: !input trigger_entity
+    to: !input trigger_state
+
+action:
+  - service: light.turn_on
+    target:
+      entity_id: !input led_entity
+    data:
+      rgb_color: !input led_color
+  - choose:
+      - conditions:
+          - condition: template
+            value_template: "{{ enable_pulse }}"
+        sequence:
+          - service: switch.turn_on
+            target:
+              entity_id: !input pulse_switch

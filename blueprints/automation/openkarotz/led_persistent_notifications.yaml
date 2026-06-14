@@ -1,0 +1,74 @@
+blueprint:
+  name: "OpenKarotz - LED on Persistent Notifications"
+  description: >
+    Change the rabbit's LED color based on persistent notifications.
+    Green when no notifications are active, Red when at least one is present.
+    Colors are fully customizable.
+  domain: automation
+  author: phschott
+  input:
+    led_entity:
+      name: LED Color 1 entity
+      description: The OpenKarotz primary LED light entity.
+      selector:
+        entity:
+          domain: light
+          integration: openkarotz
+    color_ok:
+      name: "Color — No notifications"
+      description: LED color when all notifications have been dismissed.
+      default: [0, 249, 0]
+      selector:
+        color_rgb: {}
+    color_alert:
+      name: "Color — Notification present"
+      description: LED color when at least one notification is active.
+      default: [255, 38, 0]
+      selector:
+        color_rgb: {}
+
+mode: single
+
+trigger:
+  - trigger: persistent_notification
+    update_type:
+      - added
+    id: added
+  - trigger: persistent_notification
+    update_type:
+      - removed
+    id: removed
+  - trigger: homeassistant
+    event: start
+    id: startup
+
+variables:
+  remaining: >
+    {{ states | selectattr('domain', 'eq', 'persistent_notification') | list | count }}
+
+action:
+  - choose:
+      - conditions:
+          - condition: trigger
+            id: added
+        sequence:
+          - action: light.turn_on
+            target:
+              entity_id: !input led_entity
+            data:
+              rgb_color: !input color_alert
+      - conditions:
+          - condition: template
+            value_template: "{{ trigger.id in ['removed', 'startup'] and remaining > 0 }}"
+        sequence:
+          - action: light.turn_on
+            target:
+              entity_id: !input led_entity
+            data:
+              rgb_color: !input color_alert
+    default:
+      - action: light.turn_on
+        target:
+          entity_id: !input led_entity
+        data:
+          rgb_color: !input color_ok
