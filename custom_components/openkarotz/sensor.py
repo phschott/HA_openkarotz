@@ -1,3 +1,9 @@
+"""Sensor entities for OpenKarotz integration."""
+
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any
+
 from homeassistant.components.sensor import (
     SensorEntity,
     SensorStateClass,
@@ -8,6 +14,13 @@ from homeassistant.helpers.update_coordinator import (
 )
 
 from .const import DOMAIN
+
+if TYPE_CHECKING:
+    from homeassistant.config_entries import ConfigEntry
+    from homeassistant.core import HomeAssistant
+    from homeassistant.helpers.device_registry import DeviceInfo
+    from homeassistant.helpers.entity_platform import AddEntitiesCallback
+    from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 MANUFACTURER = "Karotz"
 MODEL = "OpenKarotz"
@@ -72,13 +85,11 @@ SENSORS = [
 
 
 async def async_setup_entry(
-    hass,
-    entry,
-    async_add_entities,
+    hass: HomeAssistant,
+    entry: ConfigEntry,
+    async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Setup OpenKarotz sensors."""
-    coordinator = hass.data[DOMAIN][entry.entry_id]["coordinator"]
-
+    """Set up OpenKarotz sensors."""
     fast_coordinator = hass.data[DOMAIN][entry.entry_id]["fast_coordinator"]
 
     entities = [
@@ -106,16 +117,20 @@ class KarotzBaseSensor(
     CoordinatorEntity,
     SensorEntity,
 ):
+    """Base class for OpenKarotz sensor entities."""
+
     _attr_has_entity_name = True
 
     device_id: str
     device_name: str
 
-    def __init__(self, coordinator) -> None:
+    def __init__(self, coordinator: DataUpdateCoordinator) -> None:
+        """Initialize sensor entity."""
         super().__init__(coordinator)
 
     @property
-    def device_info(self):
+    def device_info(self) -> DeviceInfo:
+        """Return device info."""
         return {
             "identifiers": {(DOMAIN, self.device_id)},
             "name": self.device_name,
@@ -127,17 +142,20 @@ class KarotzBaseSensor(
 class KarotzStatusSensor(
     KarotzBaseSensor,
 ):
+    """OpenKarotz status sensor."""
+
     device_id = "karotz"
     device_name = "OpenKarotz"
 
     def __init__(
         self,
-        coordinator,
-        key,
-        unit,
-        entity_category,
-        state_class,
+        coordinator: DataUpdateCoordinator,
+        key: str,
+        unit: str | None,
+        entity_category: EntityCategory | None,
+        state_class: SensorStateClass | None,
     ) -> None:
+        """Initialize status sensor."""
         super().__init__(coordinator)
 
         self.key = key
@@ -153,8 +171,8 @@ class KarotzStatusSensor(
         self._attr_state_class = state_class
 
     @property
-    def native_value(self):
-
+    def native_value(self) -> Any:
+        """Return the current sensor value."""
         status = self.coordinator.data.get(
             "status",
             {},
@@ -166,10 +184,13 @@ class KarotzStatusSensor(
 class KarotzSnapshotCountSensor(
     KarotzBaseSensor,
 ):
+    """Sensor counting the number of stored snapshots."""
+
     device_id = "karotz_picture"
     device_name = "OpenKarotz Picture"
 
-    def __init__(self, coordinator) -> None:
+    def __init__(self, coordinator: DataUpdateCoordinator) -> None:
+        """Initialize snapshot count sensor."""
         super().__init__(coordinator)
 
         self._attr_translation_key = "snapshots"
@@ -179,8 +200,8 @@ class KarotzSnapshotCountSensor(
         self._attr_state_class = SensorStateClass.MEASUREMENT
 
     @property
-    def native_value(self):
-
+    def native_value(self) -> int:
+        """Return the number of stored snapshots."""
         snapshots = self.coordinator.data.get(
             "snapshots",
             {},

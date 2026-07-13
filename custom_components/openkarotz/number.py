@@ -1,7 +1,10 @@
 """Number entities for OpenKarotz integration."""
 
+from __future__ import annotations
+
 import contextlib
 import logging
+from typing import TYPE_CHECKING, Any
 
 from homeassistant.components.number import NumberEntity
 from homeassistant.helpers.restore_state import RestoreEntity
@@ -22,6 +25,14 @@ from .const import (
     MANUFACTURER,
     MODEL,
 )
+from .led_helper import apply_led_settings
+
+if TYPE_CHECKING:
+    from homeassistant.config_entries import ConfigEntry
+    from homeassistant.core import HomeAssistant
+    from homeassistant.helpers.device_registry import DeviceInfo
+    from homeassistant.helpers.entity_platform import AddEntitiesCallback
+    from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -65,7 +76,11 @@ NUMBERS = [
 ]
 
 
-async def async_setup_entry(hass, entry, async_add_entities) -> None:
+async def async_setup_entry(
+    hass: HomeAssistant,
+    entry: ConfigEntry,
+    async_add_entities: AddEntitiesCallback,
+) -> None:
     """Set up number entities."""
     coordinator = hass.data[DOMAIN][entry.entry_id]["coordinator"]
 
@@ -86,14 +101,14 @@ class KarotzBaseNumber(CoordinatorEntity, RestoreEntity, NumberEntity):
 
     _attr_has_entity_name = True
 
-    def __init__(self, coordinator, hass) -> None:
+    def __init__(self, coordinator: DataUpdateCoordinator, hass: HomeAssistant) -> None:
         """Initialize number entity."""
         super().__init__(coordinator)
         self.api = coordinator.api
         self.hass = hass
 
     @property
-    def device_info(self):
+    def device_info(self) -> DeviceInfo:
         """Return device info."""
         return {
             "identifiers": {(DOMAIN, self.device_id)},
@@ -128,7 +143,12 @@ class KarotzBaseNumber(CoordinatorEntity, RestoreEntity, NumberEntity):
 class KarotzNumber(KarotzBaseNumber):
     """OpenKarotz number entity."""
 
-    def __init__(self, coordinator, hass, number_config) -> None:
+    def __init__(
+        self,
+        coordinator: DataUpdateCoordinator,
+        hass: HomeAssistant,
+        number_config: dict[str, Any],
+    ) -> None:
         """Initialize number entity."""
         super().__init__(coordinator, hass)
 
@@ -144,14 +164,12 @@ class KarotzNumber(KarotzBaseNumber):
         self._attr_mode = number_config["mode"]
         self._attr_entity_category = number_config["entity_category"]
 
-    async def _on_value_changed(self, value: float) -> None:
+    async def _on_value_changed(self, value: float) -> None:  # noqa: ARG002
         """Handle value change - move ears or apply LED settings."""
         if self.device_id == DEVICE_EARS:
             await self._move_ears_on_change()
         elif self.device_id == DEVICE_LEDS:
             # Apply LED settings immediately when pulse speed changes
-            from .led_helper import apply_led_settings
-
             await apply_led_settings(self.hass, self.api)
 
     async def _move_ears_on_change(self) -> None:
@@ -165,5 +183,5 @@ class KarotzNumber(KarotzBaseNumber):
                 right = int(float(right_state.state))
                 await self.api.ears(left, right)
                 _LOGGER.debug("Ears moved to left=%s, right=%s", left, right)
-        except Exception as err:
+        except Exception as err:  # noqa: BLE001
             _LOGGER.warning("Failed to move ears: %s", err)

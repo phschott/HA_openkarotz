@@ -1,10 +1,14 @@
 """LED helper utilities for OpenKarotz integration."""
 
+from __future__ import annotations
+
 import logging
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
+
+    from .api import KarotzAPI
 
 from .const import (
     ENTITY_LED_COLOR_1,
@@ -45,7 +49,7 @@ def get_pulse_speed(hass: HomeAssistant) -> int:
         return 0
 
 
-async def apply_led_settings(hass: HomeAssistant, api) -> None:
+async def apply_led_settings(hass: HomeAssistant, api: KarotzAPI) -> None:
     """Apply all LED settings to the device."""
     try:
         hex_color1 = get_light_hex_color(hass, ENTITY_LED_COLOR_1)
@@ -62,5 +66,5 @@ async def apply_led_settings(hass: HomeAssistant, api) -> None:
             speed,
             hex_color2,
         )
-    except Exception as err:
-        _LOGGER.exception("Failed to apply LED settings: %s", err)
+    except Exception:
+        _LOGGER.exception("Failed to apply LED settings")

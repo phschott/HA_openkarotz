@@ -1,3 +1,9 @@
+"""Text entities for OpenKarotz integration."""
+
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from homeassistant.components.text import (
     TextEntity,
 )
@@ -9,6 +15,13 @@ from homeassistant.helpers.update_coordinator import (
 )
 
 from .const import DOMAIN
+
+if TYPE_CHECKING:
+    from homeassistant.config_entries import ConfigEntry
+    from homeassistant.core import HomeAssistant
+    from homeassistant.helpers.device_registry import DeviceInfo
+    from homeassistant.helpers.entity_platform import AddEntitiesCallback
+    from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 MANUFACTURER = "Karotz"
 MODEL = "OpenKarotz"
@@ -26,10 +39,11 @@ TEXTS = [
 
 
 async def async_setup_entry(
-    hass,
-    entry,
-    async_add_entities,
+    hass: HomeAssistant,
+    entry: ConfigEntry,
+    async_add_entities: AddEntitiesCallback,
 ) -> None:
+    """Set up text entities."""
     coordinator = hass.data[DOMAIN][entry.entry_id]["coordinator"]
 
     entities = [
@@ -58,6 +72,8 @@ class KarotzBaseText(
     RestoreEntity,
     TextEntity,
 ):
+    """Base class for OpenKarotz text entities."""
+
     _attr_has_entity_name = True
 
     device_id: str
@@ -65,12 +81,14 @@ class KarotzBaseText(
 
     def __init__(
         self,
-        coordinator,
+        coordinator: DataUpdateCoordinator,
     ) -> None:
+        """Initialize text entity."""
         super().__init__(coordinator)
 
     @property
-    def device_info(self):
+    def device_info(self) -> DeviceInfo:
+        """Return device info."""
         return {
             "identifiers": {(DOMAIN, self.device_id)},
             "name": self.device_name,
@@ -81,6 +99,7 @@ class KarotzBaseText(
     async def async_added_to_hass(
         self,
     ) -> None:
+        """Restore previous state."""
         await super().async_added_to_hass()
 
         last_state = await self.async_get_last_state()
@@ -94,8 +113,9 @@ class KarotzBaseText(
 
     async def async_set_value(
         self,
-        value,
+        value: str,
     ) -> None:
+        """Set new text value."""
         self._attr_native_value = value
 
         self.async_write_ha_state()
@@ -104,15 +124,18 @@ class KarotzBaseText(
 class KarotzText(
     KarotzBaseText,
 ):
-    def __init__(
+    """OpenKarotz text entity."""
+
+    def __init__(  # noqa: PLR0913
         self,
-        coordinator,
-        translation_key,
-        device_id,
-        device_name,
-        icon,
-        default_value,
+        coordinator: DataUpdateCoordinator,
+        translation_key: str,
+        device_id: str,
+        device_name: str,
+        icon: str,
+        default_value: str,
     ) -> None:
+        """Initialize text entity."""
         super().__init__(coordinator)
 
         self.device_id = device_id

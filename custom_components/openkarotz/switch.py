@@ -1,3 +1,9 @@
+"""Switch entities for OpenKarotz integration."""
+
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any
+
 from homeassistant.components.switch import (
     SwitchEntity,
 )
@@ -10,6 +16,13 @@ from homeassistant.helpers.update_coordinator import (
 
 from .const import DOMAIN
 from .led_helper import apply_led_settings
+
+if TYPE_CHECKING:
+    from homeassistant.config_entries import ConfigEntry
+    from homeassistant.core import HomeAssistant
+    from homeassistant.helpers.device_registry import DeviceInfo
+    from homeassistant.helpers.entity_platform import AddEntitiesCallback
+    from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 MANUFACTURER = "Karotz"
 MODEL = "OpenKarotz"
@@ -27,10 +40,11 @@ SWITCHES = [
 
 
 async def async_setup_entry(
-    hass,
-    entry,
-    async_add_entities,
+    hass: HomeAssistant,
+    entry: ConfigEntry,
+    async_add_entities: AddEntitiesCallback,
 ) -> None:
+    """Set up switch entities."""
     coordinator = hass.data[DOMAIN][entry.entry_id]["fast_coordinator"]
 
     entities = [
@@ -60,6 +74,8 @@ class KarotzBaseSwitch(
     RestoreEntity,
     SwitchEntity,
 ):
+    """Base class for OpenKarotz switch entities."""
+
     _attr_has_entity_name = True
 
     device_id: str
@@ -67,14 +83,16 @@ class KarotzBaseSwitch(
 
     def __init__(
         self,
-        coordinator,
-        hass,
+        coordinator: DataUpdateCoordinator,
+        hass: HomeAssistant,
     ) -> None:
+        """Initialize switch entity."""
         super().__init__(coordinator)
         self.hass = hass
 
     @property
-    def device_info(self):
+    def device_info(self) -> DeviceInfo:
+        """Return device info."""
         return {
             "identifiers": {(DOMAIN, self.device_id)},
             "name": self.device_name,
@@ -85,6 +103,7 @@ class KarotzBaseSwitch(
     async def async_added_to_hass(
         self,
     ) -> None:
+        """Restore previous state."""
         await super().async_added_to_hass()
 
         last_state = await self.async_get_last_state()
@@ -93,13 +112,15 @@ class KarotzBaseSwitch(
             self._attr_is_on = last_state.state == "on"
 
     @property
-    def is_on(self):
+    def is_on(self) -> bool:
+        """Return True if the switch is on."""
         return self._attr_is_on
 
     async def async_turn_on(
         self,
-        **kwargs,
+        **kwargs: Any,  # noqa: ARG002
     ) -> None:
+        """Turn the switch on."""
         self._attr_is_on = True
 
         self.async_write_ha_state()
@@ -109,8 +130,9 @@ class KarotzBaseSwitch(
 
     async def async_turn_off(
         self,
-        **kwargs,
+        **kwargs: Any,  # noqa: ARG002
     ) -> None:
+        """Turn the switch off."""
         self._attr_is_on = False
 
         self.async_write_ha_state()
@@ -125,16 +147,19 @@ class KarotzBaseSwitch(
 class KarotzSwitch(
     KarotzBaseSwitch,
 ):
-    def __init__(
+    """OpenKarotz switch entity."""
+
+    def __init__(  # noqa: PLR0913
         self,
-        coordinator,
-        hass,
-        translation_key,
-        device_id,
-        device_name,
-        icon,
-        default_state,
+        coordinator: DataUpdateCoordinator,
+        hass: HomeAssistant,
+        translation_key: str,
+        device_id: str,
+        device_name: str,
+        icon: str,
+        default_state: bool,  # noqa: FBT001
     ) -> None:
+        """Initialize switch entity."""
         super().__init__(coordinator, hass)
 
         self.device_id = device_id

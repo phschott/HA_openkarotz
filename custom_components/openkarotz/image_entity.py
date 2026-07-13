@@ -1,7 +1,12 @@
+"""Image entity for OpenKarotz integration."""
+
+from __future__ import annotations
+
 import logging
-import os
 import uuid
 from datetime import datetime
+from email.utils import parsedate_to_datetime
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 from homeassistant.components.image import ImageEntity
@@ -12,19 +17,24 @@ from .const import DEFAULT_NAME, DOMAIN, MANUFACTURER, MODEL
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
+    from homeassistant.helpers.device_registry import DeviceInfo
+    from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
 
 class KarotzImage(CoordinatorEntity, ImageEntity):
+    """Image entity exposing the latest OpenKarotz snapshot."""
+
     def __init__(
         self,
         hass: HomeAssistant,
-        coordinator,
+        coordinator: DataUpdateCoordinator,
         path: str,
         config_entry_id: str | None = None,
         name: str | None = None,
     ) -> None:
+        """Initialize the image entity."""
         # Initialize CoordinatorEntity so the entity receives coordinator updates
         super().__init__(coordinator)
         self.hass = hass
@@ -39,12 +49,13 @@ class KarotzImage(CoordinatorEntity, ImageEntity):
         self._access_tokens = [self._access_token]
 
         # keep a stable unique id per config entry (or per filename when no entry)
-        # This makes Home Assistant reuse the same registry entry and link it to the integration
+        # This makes Home Assistant reuse the same registry entry and link it
+        # to the integration
         if config_entry_id:
             self._unique_id = f"{DOMAIN}_{config_entry_id}"
         else:
             # fallback unique id based on filename path
-            self._unique_id = f"{DOMAIN}_{os.path.basename(self._path)}"
+            self._unique_id = f"{DOMAIN}_{Path(self._path).name}"
 
         self._name = name or DEFAULT_NAME
         self.device_id = "karotz_picture"
@@ -60,9 +71,10 @@ class KarotzImage(CoordinatorEntity, ImageEntity):
             self._on_coordinator_update
         )
 
-        # Initialize last_refreshed only if coordinator already has data (first successful refresh)
-        # Coordinator.update_method returns dict with image_data and pub_date when a new image was fetched
-        # and returns None when nothing changed; use this to avoid updating the timestamp on empty refreshes.
+        # Initialize last_refreshed only if the coordinator already has data
+        # (first successful refresh). update_method returns a dict with image_data
+        # and pub_date when a new image was fetched, and None when nothing changed;
+        # this avoids updating the timestamp on empty refreshes.
         if getattr(self.coordinator, "data", None) is not None:
             # Prefer coordinator-provided timestamps if available, otherwise use now
             coordinator_time = None
@@ -83,10 +95,8 @@ class KarotzImage(CoordinatorEntity, ImageEntity):
                 pub_date_str = self.coordinator.data.get("pub_date")
                 if pub_date_str:
                     try:
-                        from email.utils import parsedate_to_datetime
-
                         self._pub_date = parsedate_to_datetime(pub_date_str)
-                    except Exception as e:
+                    except Exception as e:  # noqa: BLE001
                         _LOGGER.debug(
                             "Failed to parse publication date '%s': %s", pub_date_str, e
                         )
@@ -112,10 +122,8 @@ class KarotzImage(CoordinatorEntity, ImageEntity):
                 pub_date_str = self.coordinator.data.get("pub_date")
                 if pub_date_str:
                     try:
-                        from email.utils import parsedate_to_datetime
-
                         self._pub_date = parsedate_to_datetime(pub_date_str)
-                    except Exception as e:
+                    except Exception as e:  # noqa: BLE001
                         _LOGGER.debug(
                             "Failed to parse publication date '%s': %s", pub_date_str, e
                         )
@@ -129,7 +137,7 @@ class KarotzImage(CoordinatorEntity, ImageEntity):
         if self._last_refreshed:
             try:
                 attrs["last_updated"] = dt_util.as_utc(self._last_refreshed).isoformat()
-            except Exception:
+            except Exception:  # noqa: BLE001
                 attrs["last_updated"] = str(self._last_refreshed)
         return attrs
 
@@ -144,11 +152,11 @@ class KarotzImage(CoordinatorEntity, ImageEntity):
         return self._pub_date
 
     def _read_file(self) -> bytes:
-        with open(self._path, "rb") as f:
+        with Path(self._path).open("rb") as f:
             return f.read()
 
     async def async_image(self) -> bytes | None:
-        """Return image bytes. Read file on executor to avoid blocking the event loop."""
+        """Return image bytes, reading the file on an executor thread."""
         try:
             return await self.hass.async_add_executor_job(self._read_file)
         except FileNotFoundError:
@@ -173,7 +181,7 @@ class KarotzImage(CoordinatorEntity, ImageEntity):
         return self._name
 
     @property
-    def device_info(self):
+    def device_info(self) -> DeviceInfo | None:
         """Return device information to group entities together."""
         if self._unique_id:
             return {

@@ -1,6 +1,9 @@
 """Button entities for OpenKarotz integration."""
 
+from __future__ import annotations
+
 import logging
+from typing import TYPE_CHECKING, Any
 
 import aiohttp
 from homeassistant.components.button import ButtonEntity
@@ -22,6 +25,13 @@ from .const import (
     MANUFACTURER,
     MODEL,
 )
+
+if TYPE_CHECKING:
+    from homeassistant.config_entries import ConfigEntry
+    from homeassistant.core import HomeAssistant, State
+    from homeassistant.helpers.device_registry import DeviceInfo
+    from homeassistant.helpers.entity_platform import AddEntitiesCallback
+    from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -113,7 +123,11 @@ BUTTONS = [
 ]
 
 
-async def async_setup_entry(hass, entry, async_add_entities) -> None:
+async def async_setup_entry(
+    hass: HomeAssistant,
+    entry: ConfigEntry,
+    async_add_entities: AddEntitiesCallback,
+) -> None:
     """Set up button entities."""
     coordinator = hass.data[DOMAIN][entry.entry_id]["coordinator"]
 
@@ -138,14 +152,14 @@ class KarotzBaseButton(CoordinatorEntity, ButtonEntity):
     device_id: str
     device_name: str
 
-    def __init__(self, coordinator) -> None:
+    def __init__(self, coordinator: DataUpdateCoordinator) -> None:
         """Initialize button entity."""
         super().__init__(coordinator)
         self.api = coordinator.api
         self.hass = coordinator.hass
 
     @property
-    def device_info(self):
+    def device_info(self) -> DeviceInfo:
         """Return device info."""
         return {
             "identifiers": {(DOMAIN, self.device_id)},
@@ -154,7 +168,7 @@ class KarotzBaseButton(CoordinatorEntity, ButtonEntity):
             "model": MODEL,
         }
 
-    def _get_state(self, entity_id: str):
+    def _get_state(self, entity_id: str) -> State | None:
         """Get entity state."""
         return self.hass.states.get(entity_id)
 
@@ -173,7 +187,9 @@ class KarotzBaseButton(CoordinatorEntity, ButtonEntity):
 class KarotzButton(KarotzBaseButton):
     """OpenKarotz button entity."""
 
-    def __init__(self, coordinator, button_config) -> None:
+    def __init__(
+        self, coordinator: DataUpdateCoordinator, button_config: dict[str, Any]
+    ) -> None:
         """Initialize button entity."""
         super().__init__(coordinator)
 
@@ -200,7 +216,7 @@ class KarotzSpeakButton(KarotzBaseButton):
     device_id = DEVICE_SOUND
     device_name = "OpenKarotz Sound"
 
-    def __init__(self, coordinator) -> None:
+    def __init__(self, coordinator: DataUpdateCoordinator) -> None:
         """Initialize speak button."""
         super().__init__(coordinator)
         self._attr_translation_key = "speak"
@@ -228,8 +244,8 @@ class KarotzSpeakButton(KarotzBaseButton):
             voice_id = voice_state.state.split("-")[0].strip()
             await self.api.tts(voice_id, text_state.state)
             _LOGGER.debug("TTS speaking with voice %s: %s", voice_id, text_state.state)
-        except Exception as err:
-            _LOGGER.exception("Failed to speak TTS: %s", err)
+        except Exception:
+            _LOGGER.exception("Failed to speak TTS")
 
 
 class KarotzMoodButton(KarotzBaseButton):
@@ -238,7 +254,7 @@ class KarotzMoodButton(KarotzBaseButton):
     device_id = DEVICE_SOUND
     device_name = "OpenKarotz Sound"
 
-    def __init__(self, coordinator) -> None:
+    def __init__(self, coordinator: DataUpdateCoordinator) -> None:
         """Initialize mood button."""
         super().__init__(coordinator)
         self._attr_translation_key = "mood"
@@ -257,8 +273,8 @@ class KarotzMoodButton(KarotzBaseButton):
             mood_id = mood_state.state.split("-")[0].strip()
             await self.api.moods(mood_id)
             _LOGGER.debug("Playing mood %s", mood_id)
-        except Exception as err:
-            _LOGGER.exception("Failed to play mood: %s", err)
+        except Exception:
+            _LOGGER.exception("Failed to play mood")
 
 
 class KarotzPlaySoundButton(KarotzBaseButton):
@@ -267,7 +283,8 @@ class KarotzPlaySoundButton(KarotzBaseButton):
     device_id = DEVICE_SOUND
     device_name = "OpenKarotz Sound"
 
-    def __init__(self, coordinator) -> None:
+    def __init__(self, coordinator: DataUpdateCoordinator) -> None:
+        """Initialize play sound button."""
         super().__init__(coordinator)
         self._attr_translation_key = "play_sound"
         self._attr_unique_id = "openkarotz_play_sound"
@@ -285,8 +302,8 @@ class KarotzPlaySoundButton(KarotzBaseButton):
             sound_id = sound_state.state.strip()
             await self.api.play_sound(sound_id)
             _LOGGER.debug("Playing sound %s", sound_id)
-        except Exception as err:
-            _LOGGER.exception("Failed to play sound: %s", err)
+        except Exception:
+            _LOGGER.exception("Failed to play sound")
 
 
 class KarotzPlayRadioButton(KarotzBaseButton):
@@ -295,7 +312,8 @@ class KarotzPlayRadioButton(KarotzBaseButton):
     device_id = DEVICE_SOUND
     device_name = "OpenKarotz Sound"
 
-    def __init__(self, coordinator) -> None:
+    def __init__(self, coordinator: DataUpdateCoordinator) -> None:
+        """Initialize play radio button."""
         super().__init__(coordinator)
         self._attr_translation_key = "play_radio"
         self._attr_unique_id = "openkarotz_play_radio"
@@ -327,7 +345,7 @@ class KarotzPlayRadioButton(KarotzBaseButton):
 
             await self.api.sound_url(stream["url"])
             _LOGGER.debug("Playing radio %s (%s)", stream.get("name"), stream["url"])
-        except Exception as err:
-            _LOGGER.exception("Failed to play radio: %s", err)
+        except Exception:
+            _LOGGER.exception("Failed to play radio")
 
 
