@@ -1,7 +1,10 @@
 """Data coordinators for OpenKarotz integration."""
 
+from __future__ import annotations
+
 import logging
 from datetime import timedelta
+from typing import TYPE_CHECKING, Any
 
 from homeassistant.helpers.update_coordinator import (
     DataUpdateCoordinator,
@@ -13,13 +16,18 @@ from .const import (
     COORDINATOR_UPDATE_INTERVAL,
 )
 
+if TYPE_CHECKING:
+    from homeassistant.core import HomeAssistant
+
+    from .api import KarotzAPI
+
 _LOGGER = logging.getLogger(__name__)
 
 
 class KarotzCoordinator(DataUpdateCoordinator):
     """Main coordinator for OpenKarotz data updates (4-hour interval)."""
 
-    def __init__(self, hass, api) -> None:
+    def __init__(self, hass: HomeAssistant, api: KarotzAPI) -> None:
         """Initialize the coordinator."""
         super().__init__(
             hass,
@@ -29,7 +37,7 @@ class KarotzCoordinator(DataUpdateCoordinator):
         )
         self.api = api
 
-    async def _async_update_data(self):
+    async def _async_update_data(self) -> dict[str, Any]:
         """Fetch data from API."""
         try:
             return {
@@ -46,7 +54,7 @@ class KarotzCoordinator(DataUpdateCoordinator):
 class FastCoordinator(DataUpdateCoordinator):
     """Fast coordinator for frequently updated data (10-second interval)."""
 
-    def __init__(self, hass, api) -> None:
+    def __init__(self, hass: HomeAssistant, api: KarotzAPI) -> None:
         """Initialize the fast coordinator."""
         super().__init__(
             hass,
@@ -56,7 +64,7 @@ class FastCoordinator(DataUpdateCoordinator):
         )
         self.api = api
 
-    async def _async_update_data(self):
+    async def _async_update_data(self) -> dict[str, Any]:
         """Fetch frequently updated data from API."""
         try:
             return {

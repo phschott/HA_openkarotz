@@ -1,6 +1,7 @@
 """OpenKarotz API client."""
 
 import logging
+from typing import Any
 
 import aiohttp
 
@@ -10,11 +11,11 @@ _LOGGER = logging.getLogger(__name__)
 class KarotzAPI:
     """OpenKarotz API client for HTTP communication."""
 
-    def __init__(self, host) -> None:
+    def __init__(self, host: str) -> None:
         """Initialize API client with device host."""
         self.host = host
 
-    async def _get(self, path: str):
+    async def _get(self, path: str) -> Any:
         """Make GET request to API endpoint."""
         url = f"http://{self.host}{path}"
         try:
@@ -24,7 +25,7 @@ class KarotzAPI:
             _LOGGER.warning("API request failed for %s: %s", path, err)
             raise
 
-    async def _get_binary(self, path: str):
+    async def _get_binary(self, path: str) -> bytes:
         """Get binary data from API endpoint."""
         url = f"http://{self.host}{path}"
         try:
@@ -37,7 +38,7 @@ class KarotzAPI:
     # =====================
     # STATUS / POWER
     # =====================
-    async def get_status(self):
+    async def get_status(self) -> Any:
         """Get device status."""
         return await self._get("/cgi-bin/status")
 
@@ -56,15 +57,15 @@ class KarotzAPI:
     # =====================
     # GET LISTS for SELECTS
     # =====================
-    async def get_voices(self):
+    async def get_voices(self) -> Any:
         """Get available voices list."""
         return await self._get("/cgi-bin/voice_list")
 
-    async def get_moods(self):
+    async def get_moods(self) -> Any:
         """Get available moods list."""
         return await self._get("/cgi-bin/moods_list")
 
-    async def get_radios(self):
+    async def get_radios(self) -> Any:
         """Get available radios list."""
         return await self._get("/cgi-bin/radios_list")
 
@@ -140,7 +141,7 @@ class KarotzAPI:
     # =====================
     # AUDIO / RADIOS
     # =====================
-    async def get_sounds(self):
+    async def get_sounds(self) -> Any:
         """Get list of available local sounds."""
         return await self._get("/cgi-bin/sound_list")
 
@@ -181,10 +182,10 @@ class KarotzAPI:
         """Clear all snapshots."""
         await self._get("/cgi-bin/clear_snapshots")
 
-    async def get_snapshots(self):
+    async def get_snapshots(self) -> Any:
         """Get list of available snapshots."""
         return await self._get("/cgi-bin/snapshot_list")
 
-    async def snapshot_get(self, filename: str):
+    async def snapshot_get(self, filename: str) -> bytes:
         """Get snapshot image by filename."""
         return await self._get_binary(f"/cgi-bin/snapshot_get?filename={filename}")

@@ -1,5 +1,9 @@
 """Light entities for OpenKarotz integration."""
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any, ClassVar
+
 from homeassistant.components.light import (
     ColorMode,
     LightEntity,
@@ -11,8 +15,17 @@ from homeassistant.helpers.update_coordinator import (
 from .const import DOMAIN
 from .led_helper import apply_led_settings
 
+if TYPE_CHECKING:
+    from homeassistant.config_entries import ConfigEntry
+    from homeassistant.core import HomeAssistant
+    from homeassistant.helpers.device_registry import DeviceInfo
+    from homeassistant.helpers.entity_platform import AddEntitiesCallback
+    from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
+
 MANUFACTURER = "Karotz"
 MODEL = "OpenKarotz"
+
+HEX_COLOR_LENGTH = 6
 
 
 LIGHTS = [
@@ -32,11 +45,11 @@ LIGHTS = [
 
 
 async def async_setup_entry(
-    hass,
-    entry,
-    async_add_entities,
+    hass: HomeAssistant,
+    entry: ConfigEntry,
+    async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Setup OpenKarotz light entities."""
+    """Set up OpenKarotz light entities."""
     coordinator = hass.data[DOMAIN][entry.entry_id]["fast_coordinator"]
 
     entities = [
@@ -62,13 +75,13 @@ class KarotzBaseLight(
     device_id: str
     device_name: str
 
-    def __init__(self, coordinator, hass) -> None:
+    def __init__(self, coordinator: DataUpdateCoordinator, hass: HomeAssistant) -> None:
         """Initialize light entity."""
         super().__init__(coordinator)
         self.hass = hass
 
     @property
-    def device_info(self):
+    def device_info(self) -> DeviceInfo:
         """Return device info."""
         return {
             "identifiers": {(DOMAIN, self.device_id)},
@@ -88,13 +101,13 @@ class KarotzColorLight(
 
     _attr_color_mode = ColorMode.RGB
 
-    _attr_supported_color_modes = {ColorMode.RGB}
+    _attr_supported_color_modes: ClassVar[set[ColorMode]] = {ColorMode.RGB}
 
     def __init__(
         self,
-        coordinator,
-        hass,
-        light_config,
+        coordinator: DataUpdateCoordinator,
+        hass: HomeAssistant,
+        light_config: dict[str, Any],
     ) -> None:
         """Initialize light entity."""
         super().__init__(coordinator, hass)
@@ -119,7 +132,7 @@ class KarotzColorLight(
         if self.suffix == "1" and self.coordinator.data:
             status = self.coordinator.data.get("status") or {}
             led_color = status.get("led_color")
-            if led_color and len(led_color) == 6:
+            if led_color and len(led_color) == HEX_COLOR_LENGTH:
                 try:
                     r = int(led_color[0:2], 16)
                     g = int(led_color[2:4], 16)
@@ -132,7 +145,7 @@ class KarotzColorLight(
 
     async def async_turn_on(
         self,
-        **kwargs,
+        **kwargs: Any,
     ) -> None:
         """Turn on light."""
         rgb_color = kwargs.get("rgb_color")
@@ -149,7 +162,7 @@ class KarotzColorLight(
 
     async def async_turn_off(
         self,
-        **kwargs,
+        **kwargs: Any,  # noqa: ARG002
     ) -> None:
         """Turn off light."""
         self._attr_is_on = False
