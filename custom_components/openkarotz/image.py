@@ -1,7 +1,12 @@
+"""Plateforme image pour l'intégration OpenKarotz."""
+
+from __future__ import annotations
+
 import asyncio
 import logging
-import os
 import socket
+from http import HTTPStatus
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 import aiohttp
@@ -13,100 +18,111 @@ from .const import DEFAULT_NAME, FILENAME, SNAPSHOT_SELECT_ENTITY, SNAPSHOT_URL_
 from .image_entity import KarotzImage
 
 if TYPE_CHECKING:
+    from homeassistant.core import Event
     from homeassistant.helpers.entity_platform import AddEntitiesCallback
     from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
 
 _LOGGER = logging.getLogger(__name__)
 
+MAX_RETRIES = 3
+REQUEST_TIMEOUT = 30
+
 
 def _write_bytes(path: str, data: bytes) -> None:
     """Écriture fichier en mode bloquant (exécutée dans un executor)."""
-    with open(path, "wb") as f:
+    with Path(path).open("wb") as f:
         f.write(data)
+
+
+async def _async_update_image(
+    hass: HomeAssistant,
+    config: ConfigType,
+    image_path: str,
+) -> bytes | None:
+    """
+    Télécharge le snapshot sélectionné dans select.openkarotz_snapshots.
+
+    Appelé soit au démarrage, soit à chaque changement du select.
+    Si le select n'est pas encore disponible ou si le téléchargement échoue,
+    le fichier existant est conservé.
+    """
+    timeout = aiohttp.ClientTimeout(total=REQUEST_TIMEOUT)
+
+    # 1. Lire le nom du snapshot depuis le select
+    select_state = hass.states.get(SNAPSHOT_SELECT_ENTITY)
+    if select_state is None or select_state.state in ("unknown", "unavailable", ""):
+        _LOGGER.warning(
+            "Select '%s' pas encore disponible — mise à jour image ignorée.",
+            SNAPSHOT_SELECT_ENTITY,
+        )
+        return None
+
+    snapshot_filename = select_state.state
+    _LOGGER.debug("Snapshot sélectionné : %s", snapshot_filename)
+
+    # 2. Construire l'URL
+    host = config.data["host"]
+    img_url = SNAPSHOT_URL_TEMPLATE.format(host=host, filename=snapshot_filename)
+    _LOGGER.debug("Téléchargement depuis : %s", img_url)
+
+    # 3. Télécharger avec retries
+    try:
+        async with aiohttp.ClientSession() as session:
+            data = None
+            last_error = None
+            for attempt in range(1, MAX_RETRIES + 1):
+                try:
+                    async with session.get(img_url, timeout=timeout) as resp:
+                        if resp.status == HTTPStatus.OK:
+                            data = await resp.read()
+                            break
+                        last_error = f"HTTP {resp.status}"
+                        _LOGGER.warning(
+                            "Échec téléchargement (tentative %s) : %s",
+                            attempt,
+                            last_error,
+                        )
+                except (TimeoutError, aiohttp.ClientError, socket.gaierror) as err:
+                    last_error = str(err)
+                    _LOGGER.debug("Tentative %s échouée : %s", attempt, err)
+
+                if attempt < MAX_RETRIES:
+                    await asyncio.sleep(2 ** (attempt - 1))
+                else:
+                    _LOGGER.error(
+                        "Impossible de télécharger après %s tentatives : %s",
+                        MAX_RETRIES,
+                        last_error,
+                    )
+
+            if data:
+                await hass.async_add_executor_job(_write_bytes, image_path, data)
+                _LOGGER.info("Snapshot téléchargé : %s", img_url)
+                return data
+            _LOGGER.info("Fichier image conservé (téléchargement échoué).")
+
+    except Exception:
+        _LOGGER.exception("Erreur lors du téléchargement de l'image Karotz")
+
+    return None
 
 
 async def async_setup_entry(
     hass: HomeAssistant,
     config: ConfigType,
     async_add_entities: AddEntitiesCallback,
-    discovery_info: DiscoveryInfoType | None = None,
+    discovery_info: DiscoveryInfoType | None = None,  # noqa: ARG001
 ) -> None:
+    """Configure la plateforme image et son coordinator."""
     image_path = hass.config.path(f"www/{FILENAME}")
-    os.makedirs(os.path.dirname(image_path), exist_ok=True)
-
-    async def update_image():
-        """
-        Télécharge le snapshot sélectionné dans select.openkarotz_snapshots.
-
-        Appelé soit au démarrage, soit à chaque changement du select.
-        Si le select n'est pas encore disponible ou si le téléchargement échoue,
-        le fichier existant est conservé.
-        """
-        timeout = aiohttp.ClientTimeout(total=30)
-        max_retries = 3
-
-        # 1. Lire le nom du snapshot depuis le select
-        select_state = hass.states.get(SNAPSHOT_SELECT_ENTITY)
-        if select_state is None or select_state.state in ("unknown", "unavailable", ""):
-            _LOGGER.warning(
-                "Select '%s' pas encore disponible — mise à jour image ignorée.",
-                SNAPSHOT_SELECT_ENTITY,
-            )
-            return None
-
-        snapshot_filename = select_state.state
-        _LOGGER.debug("Snapshot sélectionné : %s", snapshot_filename)
-
-        # 2. Construire l'URL
-        host = config.data["host"]
-        img_url = SNAPSHOT_URL_TEMPLATE.format(host=host, filename=snapshot_filename)
-        _LOGGER.debug("Téléchargement depuis : %s", img_url)
-
-        # 3. Télécharger avec retries
-        try:
-            async with aiohttp.ClientSession() as session:
-                data = None
-                for attempt in range(1, max_retries + 1):
-                    try:
-                        async with session.get(img_url, timeout=timeout) as resp:
-                            if resp.status == 200:
-                                data = await resp.read()
-                                break
-                            _LOGGER.warning(
-                                "Échec téléchargement (tentative %s) : HTTP %s",
-                                attempt,
-                                resp.status,
-                            )
-                            msg = f"HTTP {resp.status}"
-                            raise aiohttp.ClientError(msg)
-                    except (TimeoutError, aiohttp.ClientError, socket.gaierror) as err:
-                        _LOGGER.debug("Tentative %s échouée : %s", attempt, err)
-                        if attempt < max_retries:
-                            await asyncio.sleep(2 ** (attempt - 1))
-                        else:
-                            _LOGGER.exception(
-                                "Impossible de télécharger après %s tentatives : %s",
-                                max_retries,
-                                err,
-                            )
-
-                if data:
-                    await hass.async_add_executor_job(_write_bytes, image_path, data)
-                    _LOGGER.info("Snapshot téléchargé : %s", img_url)
-                    return data
-                _LOGGER.info("Fichier image conservé (téléchargement échoué).")
-
-        except Exception as e:
-            _LOGGER.exception("Erreur lors du téléchargement de l'image Karotz : %s", e)
-
-        return None
+    Path(image_path).parent.mkdir(parents=True, exist_ok=True)
 
     # Pas de polling — update_interval=None, on pilote manuellement via l'event
     coordinator = DataUpdateCoordinator(
         hass,
         _LOGGER,
         name="karotz_image",
-        update_method=update_image,
+        update_method=lambda: _async_update_image(hass, config, image_path),
         update_interval=None,
     )
 
@@ -119,7 +135,7 @@ async def async_setup_entry(
 
     # Écouter les changements du select et déclencher le coordinator immédiatement
     @callback
-    def _on_snapshot_selected(event) -> None:
+    def _on_snapshot_selected(event: Event) -> None:
         """Appelé dès que l'utilisateur change la valeur du select."""
         new_state = event.data.get("new_state")
         old_state = event.data.get("old_state")
