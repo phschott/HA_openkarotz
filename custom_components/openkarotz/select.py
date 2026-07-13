@@ -287,7 +287,6 @@ class OpenKarotzSnapshotSelect(
 
         return {
             "snapshot_url": f"http://{self.api.host}"
-            # f"http://karotz.schott.io:8080"
             f"/cgi-bin/snapshot_get"
             f"?filename=snapshot_{filename}"
         }
