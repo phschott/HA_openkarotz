@@ -180,7 +180,7 @@ class KarotzBaseButton(CoordinatorEntity, ButtonEntity):
 
         try:
             return int(float(state.state))
-        except (ValueError, TypeError):
+        except ValueError, TypeError:
             return default
 
 
@@ -347,5 +347,3 @@ class KarotzPlayRadioButton(KarotzBaseButton):
             _LOGGER.debug("Playing radio %s (%s)", stream.get("name"), stream["url"])
         except Exception:
             _LOGGER.exception("Failed to play radio")
-
-
