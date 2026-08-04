@@ -14,8 +14,15 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.event import async_track_state_change_event
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
-from .const import DEFAULT_NAME, FILENAME, SNAPSHOT_SELECT_ENTITY, SNAPSHOT_URL_TEMPLATE
-from .image_entity import KarotzImage
+from .const import (
+    DEFAULT_NAME,
+    DOMAIN,
+    FILENAME,
+    SNAPSHOT_SELECT_ENTITY,
+    SNAPSHOT_SLOT_COUNT,
+    SNAPSHOT_URL_TEMPLATE,
+)
+from .image_entity import KarotzImage, KarotzSnapshotSlotImage
 
 if TYPE_CHECKING:
     from homeassistant.core import Event
@@ -131,7 +138,16 @@ async def async_setup_entry(
     _LOGGER.debug("Image path : %s", image_path)
 
     entity = KarotzImage(hass, coordinator, image_path, None, DEFAULT_NAME)
-    async_add_entities([entity])
+
+    # One image entity per gallery slot, backed by the fast coordinator's
+    # local snapshot cache, for a native clickable 3-column gallery.
+    fast_coordinator = hass.data[DOMAIN][config.entry_id]["fast_coordinator"]
+    slots = [
+        KarotzSnapshotSlotImage(hass, fast_coordinator, index)
+        for index in range(SNAPSHOT_SLOT_COUNT)
+    ]
+
+    async_add_entities([entity, *slots])
 
     # Écouter les changements du select et déclencher le coordinator immédiatement
     @callback

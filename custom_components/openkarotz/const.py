@@ -13,6 +13,16 @@ DEFAULT_NAME = "OpenKarotz Picture"
 SNAPSHOT_SELECT_ENTITY = "select.openkarotz_snapshots"
 SNAPSHOT_URL_TEMPLATE = "http://{host}/cgi-bin/snapshot_get?filename={filename}"
 
+# Local snapshot cache (served by HA at /local/<SNAPSHOT_CACHE_DIR>/...).
+# Storing snapshots under config/www makes them fast to load and reachable
+# remotely through Home Assistant instead of only on the local network.
+SNAPSHOT_CACHE_DIR = "openkarotz"
+SNAPSHOT_LOCAL_URL = "/local/{cache_dir}/{filename}"
+
+# Number of "slot" image entities exposed for the native clickable gallery.
+# Slot 1 is the most recent snapshot, slot 2 the second most recent, etc.
+SNAPSHOT_SLOT_COUNT = 12
+
 # Device IDs for Entity Organization
 DEVICE_KAROTZ = "karotz"
 DEVICE_EARS = "karotz_ears"

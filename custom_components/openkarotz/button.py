@@ -113,13 +113,6 @@ BUTTONS = [
         "device_name": "OpenKarotz Picture",
         "entity_category": None,
     },
-    {
-        "method": "clear_snapshots",
-        "icon": "mdi:trash-can",
-        "device_id": DEVICE_PICTURE,
-        "device_name": "OpenKarotz Picture",
-        "entity_category": EntityCategory.CONFIG,
-    },
 ]
 
 
@@ -130,6 +123,7 @@ async def async_setup_entry(
 ) -> None:
     """Set up button entities."""
     coordinator = hass.data[DOMAIN][entry.entry_id]["coordinator"]
+    fast_coordinator = hass.data[DOMAIN][entry.entry_id]["fast_coordinator"]
 
     entities = [KarotzButton(coordinator, button_config) for button_config in BUTTONS]
 
@@ -139,6 +133,7 @@ async def async_setup_entry(
             KarotzMoodButton(coordinator),
             KarotzPlaySoundButton(coordinator),
             KarotzPlayRadioButton(coordinator),
+            KarotzClearSnapshotsButton(coordinator, fast_coordinator),
         ]
     )
 
@@ -180,7 +175,7 @@ class KarotzBaseButton(CoordinatorEntity, ButtonEntity):
 
         try:
             return int(float(state.state))
-        except ValueError, TypeError:
+        except (ValueError, TypeError):
             return default
 
 
@@ -208,6 +203,39 @@ class KarotzButton(KarotzBaseButton):
             await getattr(self.api, self.method)()
         except aiohttp.ClientResponseError as err:
             _LOGGER.debug("API request completed despite header issue: %s", err)
+
+
+class KarotzClearSnapshotsButton(KarotzBaseButton):
+    """Delete all snapshots on the device and in the local HA cache."""
+
+    device_id = DEVICE_PICTURE
+    device_name = "OpenKarotz Picture"
+
+    def __init__(
+        self,
+        coordinator: DataUpdateCoordinator,
+        fast_coordinator: DataUpdateCoordinator,
+    ) -> None:
+        """Initialize clear snapshots button."""
+        super().__init__(coordinator)
+        self.fast_coordinator = fast_coordinator
+        self._attr_translation_key = "clear_snapshots"
+        self._attr_unique_id = "openkarotz_clear_snapshots"
+        self._attr_icon = "mdi:trash-can"
+        self._attr_entity_category = EntityCategory.CONFIG
+
+    async def async_press(self) -> None:
+        """Clear snapshots on the Karotz, then purge the local cache."""
+        try:
+            await self.api.clear_snapshots()
+        except aiohttp.ClientResponseError as err:
+            _LOGGER.debug("clear_snapshots completed despite header issue: %s", err)
+
+        # Remove the locally cached copies so HA reflects the deletion at once.
+        await self.fast_coordinator.async_clear_cache()
+
+        # Refresh so the snapshot sensor/gallery update immediately.
+        await self.fast_coordinator.async_request_refresh()
 
 
 class KarotzSpeakButton(KarotzBaseButton):
