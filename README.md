@@ -18,7 +18,7 @@ Control your [Nabaztag/Karotz](https://docs.nabaztag.com) rabbit from Home Assis
 - **Ear control** — position each ear independently (0–16) or trigger a random movement
 - **Text-to-speech** — type text, pick a voice, and make your rabbit speak
 - **Moods** — trigger any of the 300+ built-in mood animations
-- **Snapshots** — take, browse, and display photos from the rabbit's camera
+- **Snapshots** — take photos and browse them in a native, clickable gallery; images are cached locally and served by Home Assistant, so they load fast and are reachable remotely (not only on your local network)
 - **Radio** — select and play internet radio streams
 - **Power management** — wake up, put to sleep, or reboot the device
 
@@ -116,10 +116,13 @@ LED state is read from the device every 10 seconds and synced automatically.
 | Entity | Platform | Description |
 |---|---|---|
 | Snapshot | Button | Take a photo |
-| Clear snapshots | Button | Delete all snapshots *(config category)* |
+| Clear snapshots | Button | Delete all snapshots from the rabbit **and** the local HA cache *(config category)* |
 | Snapshots | Select | Browse available snapshots |
-| Snapshot count | Sensor | Number of stored snapshots |
-| Snapshot viewer | Image | Display the selected snapshot |
+| Snapshot count | Sensor | Number of stored snapshots (exposes a `snapshots` attribute with local `/local/...` URLs) |
+| Snapshot viewer | Image | Display the snapshot selected in the **Snapshots** select |
+| Snapshot 1 … 12 | Image | Gallery slots — slot 1 is the most recent snapshot, slot 2 the second most recent, and so on. Tap for a full-screen view |
+
+> **Local snapshot cache:** every snapshot (and its thumbnail) is mirrored to `config/www/openkarotz/` and served by Home Assistant at `/local/openkarotz/...`. This makes photos load quickly and reachable remotely, instead of only over the device's local network. Pressing **Clear snapshots** wipes both the rabbit and this cache. The number of gallery slots is set by `SNAPSHOT_SLOT_COUNT` in `const.py` (default 12).
 
 ---
 
@@ -144,7 +147,7 @@ The rabbit's webcam is not exposed as a native entity. Use Home Assistant's buil
 
 ## Sample Dashboard
 
-A ready-to-use dashboard (`dashboard.yaml`) is included in the repository. It covers four tabs: **Apparence** (LEDs, voice, ears), **Photos** (camera & snapshots), **Sounds** (local sounds & radios), and **État** (device status & controls).
+A ready-to-use dashboard (`dashboard.yaml`) is included in the repository. It covers four tabs: **Apparence** (LEDs, voice, ears), **Photos** (take a photo + a clickable 3-column snapshot gallery, tap a thumbnail for a full-screen view), **Sounds** (local sounds & radios), and **État** (device status & controls).
 
 > **Note:** The entity IDs in the dashboard use Home Assistant's auto-generated names, which depend on your HA language setting. If your HA is in French the IDs match as-is; otherwise adjust them to your locale.
 
