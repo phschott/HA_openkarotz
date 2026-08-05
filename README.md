@@ -117,9 +117,7 @@ LED state is read from the device every 10 seconds and synced automatically.
 |---|---|---|
 | Snapshot | Button | Take a photo |
 | Clear snapshots | Button | Delete all snapshots from the rabbit **and** the local HA cache *(config category)* |
-| Snapshots | Select | Browse available snapshots |
 | Snapshot count | Sensor | Number of stored snapshots (exposes a `snapshots` attribute with local `/local/...` URLs) |
-| Snapshot viewer | Image | Display the snapshot selected in the **Snapshots** select |
 | Snapshot 1 … 12 | Image | Gallery slots — slot 1 is the most recent snapshot, slot 2 the second most recent, and so on. Tap for a full-screen view |
 
 > **Local snapshot cache:** every snapshot (and its thumbnail) is mirrored to `config/www/openkarotz/` and served by Home Assistant at `/local/openkarotz/...`. This makes photos load quickly and reachable remotely, instead of only over the device's local network. Pressing **Clear snapshots** wipes both the rabbit and this cache. The number of gallery slots is set by `SNAPSHOT_SLOT_COUNT` in `const.py` (default 12).
