@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 import uuid
+from datetime import datetime
 from typing import TYPE_CHECKING
 
 from homeassistant.components.image import ImageEntity
@@ -64,6 +65,34 @@ class KarotzSnapshotSlotImage(CoordinatorEntity, ImageEntity):
             "model": MODEL,
         }
 
+    @staticmethod
+    def _parse_snapshot_time(snapshot_id: str) -> datetime | None:
+        """
+        Derive the capture time from the snapshot filename.
+
+        e.g. ``snapshot_2026_07_02_11_00_44.jpg`` -> 2026-07-02 11:00:44 in the
+        Home Assistant local time zone. Returns ``None`` if the name does not
+        match the expected pattern.
+        """
+        stem = snapshot_id.split(".", 1)[0]
+        parts = stem.split("_")
+        # parts: prefix "snapshot" then year, month, day, hour, minute, second
+        if len(parts) < 7:  # noqa: PLR2004
+            return None
+        try:
+            year, month, day, hour, minute, second = (int(p) for p in parts[1:7])
+            return datetime(
+                year,
+                month,
+                day,
+                hour,
+                minute,
+                second,
+                tzinfo=dt_util.DEFAULT_TIME_ZONE,
+            )
+        except ValueError, TypeError:
+            return None
+
     def _snapshot_id(self) -> str | None:
         """Return the id of the snapshot for this slot, newest first."""
         data = self.coordinator.data or {}
@@ -89,7 +118,11 @@ class KarotzSnapshotSlotImage(CoordinatorEntity, ImageEntity):
             self._current_id = new_id
             self._access_token = uuid.uuid4().hex
             self._access_tokens = [self._access_token]
-            self._attr_image_last_updated = dt_util.utcnow()
+            # Keep the original capture time (from the filename) rather than
+            # "now", so shifting slots don't all show the current timestamp.
+            self._attr_image_last_updated = (
+                self._parse_snapshot_time(new_id) if new_id else None
+            )
         super()._handle_coordinator_update()
 
     async def async_added_to_hass(self) -> None:
@@ -97,7 +130,7 @@ class KarotzSnapshotSlotImage(CoordinatorEntity, ImageEntity):
         await super().async_added_to_hass()
         self._current_id = self._snapshot_id()
         if self._current_id and self._attr_image_last_updated is None:
-            self._attr_image_last_updated = dt_util.utcnow()
+            self._attr_image_last_updated = self._parse_snapshot_time(self._current_id)
 
     async def async_image(self) -> bytes | None:
         """Return the cached bytes for this slot's snapshot."""
