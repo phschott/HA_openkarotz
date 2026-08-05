@@ -28,9 +28,9 @@ async def async_setup_entry(
     Une entité « slot » par photo (slot 1 = snapshot le plus récent), alimentée
     par le cache local du fast coordinator et servie par Home Assistant.
     """
-    fast_coordinator = hass.data[DOMAIN][config.entry_id]["fast_coordinator"]
+    snapshot_coordinator = hass.data[DOMAIN][config.entry_id]["snapshot_coordinator"]
 
     async_add_entities(
-        KarotzSnapshotSlotImage(hass, fast_coordinator, index)
+        KarotzSnapshotSlotImage(hass, snapshot_coordinator, index)
         for index in range(SNAPSHOT_SLOT_COUNT)
     )

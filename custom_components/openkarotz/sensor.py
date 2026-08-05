@@ -91,6 +91,7 @@ async def async_setup_entry(
 ) -> None:
     """Set up OpenKarotz sensors."""
     fast_coordinator = hass.data[DOMAIN][entry.entry_id]["fast_coordinator"]
+    snapshot_coordinator = hass.data[DOMAIN][entry.entry_id]["snapshot_coordinator"]
 
     entities = [
         KarotzStatusSensor(
@@ -108,7 +109,7 @@ async def async_setup_entry(
         ) in SENSORS
     ]
 
-    entities.append(KarotzSnapshotCountSensor(fast_coordinator))
+    entities.append(KarotzSnapshotCountSensor(snapshot_coordinator))
 
     async_add_entities(entities)
 

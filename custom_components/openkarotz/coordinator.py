@@ -54,7 +54,7 @@ class KarotzCoordinator(DataUpdateCoordinator):
 
 
 class FastCoordinator(DataUpdateCoordinator):
-    """Fast coordinator for frequently updated data (10-second interval)."""
+    """Fast coordinator for frequently polled status (LED, diagnostic sensors)."""
 
     def __init__(self, hass: HomeAssistant, api: KarotzAPI) -> None:
         """Initialize the fast coordinator."""
@@ -65,29 +65,55 @@ class FastCoordinator(DataUpdateCoordinator):
             update_interval=timedelta(seconds=COORDINATOR_FAST_UPDATE_INTERVAL),
         )
         self.api = api
+
+    async def _async_update_data(self) -> dict[str, Any]:
+        """Fetch frequently updated status from the device."""
+        try:
+            return {"status": await self.api.get_status()}
+        except Exception as err:
+            msg = f"Fast update failed: {err}"
+            raise UpdateFailed(msg) from err
+
+
+class SnapshotCoordinator(DataUpdateCoordinator):
+    """
+    Coordinator for the snapshot list and local cache, refreshed on demand.
+
+    It has no polling interval: the device snapshot list only changes when a
+    photo is taken or the snapshots are cleared. Refreshing happens at
+    integration load and when the picture buttons request it, instead of every
+    few seconds.
+    """
+
+    def __init__(self, hass: HomeAssistant, api: KarotzAPI) -> None:
+        """Initialize the snapshot coordinator."""
+        super().__init__(
+            hass,
+            _LOGGER,
+            name="OpenKarotz Snapshots",
+            update_interval=None,
+        )
+        self.api = api
         # Directory (under config/www) where snapshots are cached so Home
         # Assistant can serve them at /local/<SNAPSHOT_CACHE_DIR>/...
         self.snapshot_cache_dir = Path(hass.config.path(f"www/{SNAPSHOT_CACHE_DIR}"))
 
     async def _async_update_data(self) -> dict[str, Any]:
-        """Fetch frequently updated data from API."""
+        """Fetch the snapshot list and mirror it into the local cache."""
         try:
-            data = {
-                "status": await self.api.get_status(),
-                "snapshots": await self.api.get_snapshots(),
-            }
+            snapshots = await self.api.get_snapshots()
         except Exception as err:
-            msg = f"Fast update failed: {err}"
+            msg = f"Snapshot update failed: {err}"
             raise UpdateFailed(msg) from err
 
         # Mirror the device snapshots into the local cache (best effort — a
         # failed download must not break the whole update cycle).
         try:
-            await self._sync_snapshot_cache(data["snapshots"])
+            await self._sync_snapshot_cache(snapshots)
         except Exception:
             _LOGGER.exception("Failed to sync snapshot cache")
 
-        return data
+        return {"snapshots": snapshots}
 
     @staticmethod
     def _thumb_name(snapshot_id: str) -> str:

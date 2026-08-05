@@ -17,6 +17,10 @@ SNAPSHOT_CACHE_DIR = "openkarotz"
 # Slot 1 is the most recent snapshot, slot 2 the second most recent, etc.
 SNAPSHOT_SLOT_COUNT = 12
 
+# Seconds to wait after taking a photo before re-reading the snapshot list,
+# giving the device time to store the new file so the gallery picks it up.
+SNAPSHOT_REFRESH_DELAY = 3
+
 # Device IDs for Entity Organization
 DEVICE_KAROTZ = "karotz"
 DEVICE_EARS = "karotz_ears"

@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, Any
 import aiohttp
 from homeassistant.components.button import ButtonEntity
 from homeassistant.helpers.entity import EntityCategory
+from homeassistant.helpers.event import async_call_later
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import (
@@ -24,9 +25,12 @@ from .const import (
     ENTITY_VOICE_SELECT,
     MANUFACTURER,
     MODEL,
+    SNAPSHOT_REFRESH_DELAY,
 )
 
 if TYPE_CHECKING:
+    from datetime import datetime
+
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.core import HomeAssistant, State
     from homeassistant.helpers.device_registry import DeviceInfo
@@ -106,13 +110,6 @@ BUTTONS = [
         "device_name": "OpenKarotz Sound",
         "entity_category": None,
     },
-    {
-        "method": "snapshot",
-        "icon": "mdi:camera",
-        "device_id": DEVICE_PICTURE,
-        "device_name": "OpenKarotz Picture",
-        "entity_category": None,
-    },
 ]
 
 
@@ -123,7 +120,7 @@ async def async_setup_entry(
 ) -> None:
     """Set up button entities."""
     coordinator = hass.data[DOMAIN][entry.entry_id]["coordinator"]
-    fast_coordinator = hass.data[DOMAIN][entry.entry_id]["fast_coordinator"]
+    snapshot_coordinator = hass.data[DOMAIN][entry.entry_id]["snapshot_coordinator"]
 
     entities = [KarotzButton(coordinator, button_config) for button_config in BUTTONS]
 
@@ -133,7 +130,8 @@ async def async_setup_entry(
             KarotzMoodButton(coordinator),
             KarotzPlaySoundButton(coordinator),
             KarotzPlayRadioButton(coordinator),
-            KarotzClearSnapshotsButton(coordinator, fast_coordinator),
+            KarotzSnapshotButton(coordinator, snapshot_coordinator),
+            KarotzClearSnapshotsButton(coordinator, snapshot_coordinator),
         ]
     )
 
@@ -205,6 +203,44 @@ class KarotzButton(KarotzBaseButton):
             _LOGGER.debug("API request completed despite header issue: %s", err)
 
 
+class KarotzSnapshotButton(KarotzBaseButton):
+    """Take a photo, then refresh the snapshot gallery."""
+
+    device_id = DEVICE_PICTURE
+    device_name = "OpenKarotz Picture"
+
+    def __init__(
+        self,
+        coordinator: DataUpdateCoordinator,
+        snapshot_coordinator: DataUpdateCoordinator,
+    ) -> None:
+        """Initialize snapshot button."""
+        super().__init__(coordinator)
+        self.snapshot_coordinator = snapshot_coordinator
+        self._attr_translation_key = "snapshot"
+        self._attr_unique_id = "openkarotz_snapshot"
+        self._attr_icon = "mdi:camera"
+
+    async def async_press(self) -> None:
+        """Take a photo, then refresh the gallery once the file is stored."""
+        try:
+            await self.api.snapshot()
+        except aiohttp.ClientResponseError as err:
+            _LOGGER.debug("snapshot completed despite header issue: %s", err)
+
+        # The device needs a moment to store the new file before it appears in
+        # the snapshot list, so refresh after a short delay.
+        async_call_later(
+            self.hass,
+            SNAPSHOT_REFRESH_DELAY,
+            self._delayed_refresh,
+        )
+
+    async def _delayed_refresh(self, _now: datetime) -> None:
+        """Refresh the snapshot coordinator (scheduled after a snapshot)."""
+        await self.snapshot_coordinator.async_request_refresh()
+
+
 class KarotzClearSnapshotsButton(KarotzBaseButton):
     """Delete all snapshots on the device and in the local HA cache."""
 
@@ -214,11 +250,11 @@ class KarotzClearSnapshotsButton(KarotzBaseButton):
     def __init__(
         self,
         coordinator: DataUpdateCoordinator,
-        fast_coordinator: DataUpdateCoordinator,
+        snapshot_coordinator: DataUpdateCoordinator,
     ) -> None:
         """Initialize clear snapshots button."""
         super().__init__(coordinator)
-        self.fast_coordinator = fast_coordinator
+        self.snapshot_coordinator = snapshot_coordinator
         self._attr_translation_key = "clear_snapshots"
         self._attr_unique_id = "openkarotz_clear_snapshots"
         self._attr_icon = "mdi:trash-can"
@@ -232,10 +268,10 @@ class KarotzClearSnapshotsButton(KarotzBaseButton):
             _LOGGER.debug("clear_snapshots completed despite header issue: %s", err)
 
         # Remove the locally cached copies so HA reflects the deletion at once.
-        await self.fast_coordinator.async_clear_cache()
+        await self.snapshot_coordinator.async_clear_cache()
 
         # Refresh so the snapshot sensor/gallery update immediately.
-        await self.fast_coordinator.async_request_refresh()
+        await self.snapshot_coordinator.async_request_refresh()
 
 
 class KarotzSpeakButton(KarotzBaseButton):
