@@ -13,7 +13,7 @@ Control your [Nabaztag/Karotz](https://docs.nabaztag.com) rabbit from Home Assis
 
 ## Features
 
-- **Live status sync** — LED color, pulse mode, and diagnostic sensors refresh every 10 seconds
+- **Live status sync** — LED color, pulse mode, and diagnostic sensors refresh every 5 seconds
 - **Full LED control** — set primary and secondary RGB colors, enable/disable pulse, adjust pulse speed
 - **Ear control** — position each ear independently (0–16) or trigger a random movement
 - **Text-to-speech** — type text, pick a voice, and make your rabbit speak
@@ -86,7 +86,7 @@ The main device exposing global status and power controls.
 
 ### OpenKarotz LEDs
 
-LED state is read from the device every 10 seconds and synced automatically.
+LED state is read from the device every 5 seconds and synced automatically.
 
 | Entity | Platform | Description |
 |---|---|---|
@@ -115,14 +115,12 @@ LED state is read from the device every 10 seconds and synced automatically.
 
 | Entity | Platform | Description |
 |---|---|---|
-| Snapshot | Button | Take a photo |
-| Clear snapshots | Button | Delete all snapshots from the rabbit **and** the local HA cache *(config category)* |
-| Snapshots | Select | Browse available snapshots |
+| Snapshot | Button | Take a photo, then refresh the gallery once the device has stored it |
+| Clear snapshots | Button | Delete all snapshots from the rabbit **and** the local HA cache, then refresh *(config category)* |
 | Snapshot count | Sensor | Number of stored snapshots (exposes a `snapshots` attribute with local `/local/...` URLs) |
-| Snapshot viewer | Image | Display the snapshot selected in the **Snapshots** select |
 | Snapshot 1 … 12 | Image | Gallery slots — slot 1 is the most recent snapshot, slot 2 the second most recent, and so on. Tap for a full-screen view |
 
-> **Local snapshot cache:** every snapshot (and its thumbnail) is mirrored to `config/www/openkarotz/` and served by Home Assistant at `/local/openkarotz/...`. This makes photos load quickly and reachable remotely, instead of only over the device's local network. Pressing **Clear snapshots** wipes both the rabbit and this cache. The number of gallery slots is set by `SNAPSHOT_SLOT_COUNT` in `const.py` (default 12).
+> **Local snapshot cache:** every snapshot (and its thumbnail) is mirrored to `config/www/openkarotz/` and served by Home Assistant at `/local/openkarotz/...`. This makes photos load quickly and reachable remotely, instead of only over the device's local network. The cache is synced on demand — at integration load and after taking or clearing photos (see [Update Intervals](#update-intervals)) — not on a timer. Pressing **Clear snapshots** wipes both the rabbit and this cache. Delay before the gallery refreshes after a photo is set by `SNAPSHOT_REFRESH_DELAY` (default 3 s) and the number of gallery slots by `SNAPSHOT_SLOT_COUNT` (default 12), both in `const.py`.
 
 ---
 
@@ -140,8 +138,14 @@ The rabbit's webcam is not exposed as a native entity. Use Home Assistant's buil
 | Data | Interval |
 |---|---|
 | Status (LED, sensors) | 5 seconds |
-| Snapshots | 5 seconds |
+| Snapshots | On demand (integration load + after taking or clearing photos) |
 | Voices, moods, radios | 4 hours |
+
+Snapshots are **not** polled on a timer. The snapshot list is fetched (and the
+local cache synced) when the integration loads and whenever you press **Snapshot**
+or **Clear snapshots**, avoiding needless requests to the device every few
+seconds. A photo taken outside Home Assistant (e.g. from the rabbit's own web UI
+or an RFID tag) appears after the next integration reload or button press.
 
 ---
 

@@ -5,8 +5,8 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from .api import KarotzAPI
-from .const import DOMAIN, FILENAME, PLATFORMS
-from .coordinator import FastCoordinator, KarotzCoordinator
+from .const import DOMAIN, PLATFORMS
+from .coordinator import FastCoordinator, KarotzCoordinator, SnapshotCoordinator
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
@@ -34,13 +34,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # Initialize coordinators
     coordinator = KarotzCoordinator(hass, api)
     fast_coordinator = FastCoordinator(hass, api)
+    snapshot_coordinator = SnapshotCoordinator(hass, api)
 
-    # Set up image path
-    image_path = hass.config.path(f"www/{FILENAME}")
-
-    # Perform initial data refresh
+    # Perform initial data refresh (snapshots load once here, then on demand)
     await coordinator.async_config_entry_first_refresh()
     await fast_coordinator.async_config_entry_first_refresh()
+    await snapshot_coordinator.async_config_entry_first_refresh()
 
     # Store data in hass
     hass.data.setdefault(DOMAIN, {})
@@ -48,7 +47,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         "api": api,
         "coordinator": coordinator,
         "fast_coordinator": fast_coordinator,
-        "image_path": image_path,
+        "snapshot_coordinator": snapshot_coordinator,
     }
 
     # Set up platforms

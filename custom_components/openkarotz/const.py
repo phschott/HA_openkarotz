@@ -6,22 +6,20 @@ MANUFACTURER = "Karotz"
 MODEL = "OpenKarotz"
 
 # File and Image Configuration
-FILENAME = "SelectedKarotzPicture.jpg"
 DEFAULT_NAME = "OpenKarotz Picture"
-
-# Snapshot Configuration
-SNAPSHOT_SELECT_ENTITY = "select.openkarotz_snapshots"
-SNAPSHOT_URL_TEMPLATE = "http://{host}/cgi-bin/snapshot_get?filename={filename}"
 
 # Local snapshot cache (served by HA at /local/<SNAPSHOT_CACHE_DIR>/...).
 # Storing snapshots under config/www makes them fast to load and reachable
 # remotely through Home Assistant instead of only on the local network.
 SNAPSHOT_CACHE_DIR = "openkarotz"
-SNAPSHOT_LOCAL_URL = "/local/{cache_dir}/{filename}"
 
 # Number of "slot" image entities exposed for the native clickable gallery.
 # Slot 1 is the most recent snapshot, slot 2 the second most recent, etc.
 SNAPSHOT_SLOT_COUNT = 12
+
+# Seconds to wait after taking a photo before re-reading the snapshot list,
+# giving the device time to store the new file so the gallery picks it up.
+SNAPSHOT_REFRESH_DELAY = 3
 
 # Device IDs for Entity Organization
 DEVICE_KAROTZ = "karotz"
@@ -35,7 +33,6 @@ ENTITY_VOICE_SELECT = "select.openkarotz_voice"
 ENTITY_MOOD_SELECT = "select.openkarotz_mood"
 ENTITY_RADIOS_SELECT = "select.openkarotz_radios"
 ENTITY_SOUND_SELECT = "select.openkarotz_sound"
-ENTITY_SNAPSHOTS_SELECT = "select.openkarotz_snapshots"
 
 ENTITY_EAR_LEFT = "number.openkarotz_ear_left"
 ENTITY_EAR_RIGHT = "number.openkarotz_ear_right"

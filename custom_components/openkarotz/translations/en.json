@@ -130,9 +130,6 @@
       },
       "sound": {
         "name": "Sound"
-      },
-      "snapshots": {
-        "name": "Snapshots"
       }
     },
     "switch": {

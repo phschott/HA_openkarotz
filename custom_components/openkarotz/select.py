@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import html
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from homeassistant.components.select import (
     SelectEntity,
@@ -68,8 +68,6 @@ async def async_setup_entry(
     """Set up OpenKarotz select entities."""
     coordinator = hass.data[DOMAIN][entry.entry_id]["coordinator"]
 
-    fast_coordinator = hass.data[DOMAIN][entry.entry_id]["fast_coordinator"]
-
     entities = [
         KarotzSelect(
             coordinator,
@@ -87,12 +85,6 @@ async def async_setup_entry(
             icon,
         ) in SELECTS
     ]
-
-    entities.append(
-        OpenKarotzSnapshotSelect(
-            fast_coordinator,
-        )
-    )
 
     async_add_entities(entities)
 
@@ -230,81 +222,3 @@ class KarotzSelect(
         self._attr_current_option = option
 
         self.async_write_ha_state()
-
-
-class OpenKarotzSnapshotSelect(
-    KarotzBaseSelect,
-):
-    """Select entity listing the device snapshots."""
-
-    device_id = "karotz_picture"
-    device_name = "OpenKarotz Picture"
-
-    def __init__(self, coordinator: DataUpdateCoordinator) -> None:
-        """Initialize snapshot select entity."""
-        super().__init__(coordinator)
-
-        self.entity_id = "select.openkarotz_snapshots"
-
-        self._attr_translation_key = "snapshots"
-
-        self._attr_unique_id = "openkarotz_snapshots"
-
-        self._attr_icon = "mdi:camera"
-
-    @property
-    def device_info(self) -> DeviceInfo:
-        """Return device info."""
-        return {
-            "identifiers": {(DOMAIN, self.device_id)},
-            "name": self.device_name,
-            "manufacturer": MANUFACTURER,
-            "model": MODEL,
-        }
-
-    @property
-    def options(self) -> list[str]:
-        """Return available snapshot options."""
-        options = [
-            snap["id"]
-            for snap in self.coordinator.data.get("snapshots", {}).get("snapshots", [])
-            if "id" in snap
-        ]
-
-        self._attr_options = options
-
-        return options
-
-    @property
-    def current_option(self) -> str | None:
-        """Return the selected snapshot."""
-        if (self._attr_current_option not in self.options) and self.options:
-            self._attr_current_option = self.options[0]
-
-        return self._attr_current_option
-
-    async def async_select_option(
-        self,
-        option: str,
-    ) -> None:
-        """Handle snapshot selection."""
-        self._attr_current_option = option
-
-        self.async_write_ha_state()
-
-    @property
-    def extra_state_attributes(self) -> dict[str, Any]:
-        """Return additional state attributes."""
-        if not self._attr_current_option:
-            return {}
-
-        filename = self._attr_current_option.replace(
-            "snapshot_",
-            "",
-        )
-
-        return {
-            "snapshot_url": f"http://{self.api.host}"
-            f"/cgi-bin/snapshot_get"
-            f"?filename=snapshot_{filename}"
-        }
