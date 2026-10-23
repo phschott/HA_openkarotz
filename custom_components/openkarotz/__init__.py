@@ -26,7 +26,7 @@ def _install_blueprints(hass: HomeAssistant) -> None:
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up OpenKarotz integration from config entry."""
-    _install_blueprints(hass)
+    await hass.async_add_executor_job(_install_blueprints, hass)
 
     # Initialize API client
     api = KarotzAPI(entry.data["host"])
