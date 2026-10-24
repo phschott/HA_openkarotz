@@ -4,6 +4,8 @@ import shutil
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
+
 from .api import KarotzAPI
 from .const import DOMAIN, PLATFORMS
 from .coordinator import FastCoordinator, KarotzCoordinator, SnapshotCoordinator
@@ -29,8 +31,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up OpenKarotz integration from config entry."""
     await hass.async_add_executor_job(_install_blueprints, hass)
 
-    # Initialize API client
-    api = KarotzAPI(entry.data["host"])
+    # Initialize API client with Home Assistant's shared aiohttp session
+    api = KarotzAPI(entry.data["host"], async_get_clientsession(hass))
 
     # Initialize coordinators
     coordinator = KarotzCoordinator(hass, api)

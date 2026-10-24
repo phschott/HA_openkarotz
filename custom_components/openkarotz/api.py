@@ -1,28 +1,37 @@
 """OpenKarotz API client."""
 
+from __future__ import annotations
+
 import logging
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import aiohttp
 
+if TYPE_CHECKING:
+    from aiohttp import ClientSession
+
 _LOGGER = logging.getLogger(__name__)
+
+# Keep requests short so an unreachable rabbit can't hold a poll for long.
+REQUEST_TIMEOUT = aiohttp.ClientTimeout(total=10)
 
 
 class KarotzAPI:
     """OpenKarotz API client for HTTP communication."""
 
-    def __init__(self, host: str) -> None:
-        """Initialize API client with device host."""
+    def __init__(self, host: str, session: ClientSession) -> None:
+        """Initialize API client with device host and a shared HTTP session."""
         self.host = host
+        # Home Assistant's shared client session; never closed by this client.
+        self._session = session
 
     async def _get(self, path: str, params: dict[str, Any] | None = None) -> Any:
         """Make GET request to API endpoint."""
         url = f"http://{self.host}{path}"
         try:
-            async with (
-                aiohttp.ClientSession() as session,
-                session.get(url, params=params) as resp,
-            ):
+            async with self._session.get(
+                url, params=params, timeout=REQUEST_TIMEOUT
+            ) as resp:
                 return await resp.json(content_type=None)
         except Exception as err:
             _LOGGER.warning("API request failed for %s: %s", path, err)
@@ -34,10 +43,9 @@ class KarotzAPI:
         """Get binary data from API endpoint."""
         url = f"http://{self.host}{path}"
         try:
-            async with (
-                aiohttp.ClientSession() as session,
-                session.get(url, params=params) as resp,
-            ):
+            async with self._session.get(
+                url, params=params, timeout=REQUEST_TIMEOUT
+            ) as resp:
                 return await resp.read()
         except Exception as err:
             _LOGGER.warning("Binary API request failed for %s: %s", path, err)
