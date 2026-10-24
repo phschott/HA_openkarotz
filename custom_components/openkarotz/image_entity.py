@@ -90,7 +90,7 @@ class KarotzSnapshotSlotImage(CoordinatorEntity, ImageEntity):
                 second,
                 tzinfo=dt_util.DEFAULT_TIME_ZONE,
             )
-        except (ValueError, TypeError):
+        except ValueError, TypeError:
             return None
 
     def _snapshot_id(self) -> str | None:
