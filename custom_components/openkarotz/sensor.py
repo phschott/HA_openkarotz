@@ -13,7 +13,7 @@ from homeassistant.helpers.update_coordinator import (
     CoordinatorEntity,
 )
 
-from .const import DOMAIN, SNAPSHOT_CACHE_DIR
+from .const import DOMAIN
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
@@ -208,38 +208,17 @@ class KarotzSnapshotCountSensor(
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         """
-        Expose every snapshot id and its full download URL.
+        Expose the id of every stored snapshot.
 
-        This lets a dashboard (e.g. a Markdown card) iterate over all
-        snapshots and display the whole gallery at once.
-
-        URLs point at the local cache served by Home Assistant
-        (``/local/<SNAPSHOT_CACHE_DIR>/...``) so images load fast and are
-        reachable remotely, not only on the device's local network.
+        This lets a dashboard iterate over the snapshots; the images
+        themselves are served through the authenticated image entities
+        (``image.openkarotz_snapshot_N``), not as public ``/local/...`` URLs.
         """
-        base = f"/local/{SNAPSHOT_CACHE_DIR}/"
-
         return {
             "snapshots": [
-                {
-                    "id": snap["id"],
-                    "url": f"{base}{snap['id']}",
-                    "thumb_url": f"{base}{self._thumb_name(snap['id'])}",
-                }
-                for snap in self._snapshots()
-                if "id" in snap
+                {"id": snap["id"]} for snap in self._snapshots() if "id" in snap
             ]
         }
-
-    @staticmethod
-    def _thumb_name(snapshot_id: str) -> str:
-        """
-        Derive the thumbnail filename from a snapshot id.
-
-        e.g. ``snapshot_2026_07_02_11_00_44.jpg`` ->
-        ``snapshot_2026_07_02_11_00_44.thumb.gif``.
-        """
-        return f"{snapshot_id.rsplit('.', 1)[0]}.thumb.gif"
 
     def _snapshots(self) -> list[dict[str, Any]]:
         """Return the raw snapshot list from the coordinator data."""

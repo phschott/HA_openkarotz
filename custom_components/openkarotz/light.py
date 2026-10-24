@@ -22,6 +22,8 @@ if TYPE_CHECKING:
     from homeassistant.helpers.entity_platform import AddEntitiesCallback
     from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
+    from .shared_state import KarotzSharedState
+
 MANUFACTURER = "Karotz"
 MODEL = "OpenKarotz"
 
@@ -51,11 +53,13 @@ async def async_setup_entry(
 ) -> None:
     """Set up OpenKarotz light entities."""
     coordinator = hass.data[DOMAIN][entry.entry_id]["fast_coordinator"]
+    shared_state = hass.data[DOMAIN][entry.entry_id]["shared_state"]
 
     entities = [
         KarotzColorLight(
             coordinator,
             hass,
+            shared_state,
             light_config,
         )
         for light_config in LIGHTS
@@ -75,10 +79,16 @@ class KarotzBaseLight(
     device_id: str
     device_name: str
 
-    def __init__(self, coordinator: DataUpdateCoordinator, hass: HomeAssistant) -> None:
+    def __init__(
+        self,
+        coordinator: DataUpdateCoordinator,
+        hass: HomeAssistant,
+        shared_state: KarotzSharedState,
+    ) -> None:
         """Initialize light entity."""
         super().__init__(coordinator)
         self.hass = hass
+        self.shared_state = shared_state
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -107,10 +117,11 @@ class KarotzColorLight(
         self,
         coordinator: DataUpdateCoordinator,
         hass: HomeAssistant,
+        shared_state: KarotzSharedState,
         light_config: dict[str, Any],
     ) -> None:
         """Initialize light entity."""
-        super().__init__(coordinator, hass)
+        super().__init__(coordinator, hass, shared_state)
 
         self.suffix = light_config["suffix"]
         self.api = coordinator.api
@@ -127,6 +138,14 @@ class KarotzColorLight(
         # Set default on/off state from configuration
         self._attr_is_on = light_config["default_is_on"]
 
+        # Seed the shared state with this light's defaults.
+        self._store_shared_state()
+
+    def _store_shared_state(self) -> None:
+        """Mirror this light's color/on state into the shared state."""
+        setattr(self.shared_state, f"color_{self.suffix}_rgb", self._attr_rgb_color)
+        setattr(self.shared_state, f"color_{self.suffix}_on", self._attr_is_on)
+
     def _handle_coordinator_update(self) -> None:
         """Sync LED color from device status (color_1 only)."""
         if self.suffix == "1" and self.coordinator.data:
@@ -139,6 +158,7 @@ class KarotzColorLight(
                     b = int(led_color[4:6], 16)
                     self._attr_rgb_color = (r, g, b)
                     self._attr_is_on = led_color != "000000"
+                    self._store_shared_state()
                 except ValueError:
                     pass
         super()._handle_coordinator_update()
@@ -155,10 +175,12 @@ class KarotzColorLight(
 
         self._attr_is_on = True
 
+        self._store_shared_state()
+
         self.async_write_ha_state()
 
         # Apply LED settings immediately
-        await apply_led_settings(self.hass, self.api)
+        await apply_led_settings(self.api, self.shared_state)
 
     async def async_turn_off(
         self,
@@ -167,7 +189,9 @@ class KarotzColorLight(
         """Turn off light."""
         self._attr_is_on = False
 
+        self._store_shared_state()
+
         self.async_write_ha_state()
 
         # Apply LED settings immediately
-        await apply_led_settings(self.hass, self.api)
+        await apply_led_settings(self.api, self.shared_state)
