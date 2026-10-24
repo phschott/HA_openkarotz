@@ -18,7 +18,7 @@ Control your [Nabaztag/Karotz](https://docs.nabaztag.com) rabbit from Home Assis
 - **Ear control** — position each ear independently (0–16) or trigger a random movement
 - **Text-to-speech** — type text, pick a voice, and make your rabbit speak
 - **Moods** — trigger any of the 300+ built-in mood animations
-- **Snapshots** — take photos and browse them in a native, clickable gallery; images are cached locally and served by Home Assistant, so they load fast and are reachable remotely (not only on your local network)
+- **Snapshots** — take photos and browse them in a native, clickable gallery; images are fetched from the device on demand and served through Home Assistant's authenticated image proxy (never exposed publicly under `/local/...`)
 - **Radio** — select and play internet radio streams
 - **Power management** — wake up, put to sleep, or reboot the device
 
@@ -116,11 +116,11 @@ LED state is read from the device every 5 seconds and synced automatically.
 | Entity | Platform | Description |
 |---|---|---|
 | Snapshot | Button | Take a photo, then refresh the gallery once the device has stored it |
-| Clear snapshots | Button | Delete all snapshots from the rabbit **and** the local HA cache, then refresh *(config category)* |
-| Snapshot count | Sensor | Number of stored snapshots (exposes a `snapshots` attribute with local `/local/...` URLs) |
+| Clear snapshots | Button | Delete all snapshots from the rabbit **and** drop the in-memory image cache, then refresh *(config category)* |
+| Snapshot count | Sensor | Number of stored snapshots (exposes a `snapshots` attribute listing each snapshot `id`) |
 | Snapshot 1 … 12 | Image | Gallery slots — slot 1 is the most recent snapshot, slot 2 the second most recent, and so on. Tap for a full-screen view |
 
-> **Local snapshot cache:** every snapshot (and its thumbnail) is mirrored to `config/www/openkarotz/` and served by Home Assistant at `/local/openkarotz/...`. This makes photos load quickly and reachable remotely, instead of only over the device's local network. The cache is synced on demand — at integration load and after taking or clearing photos (see [Update Intervals](#update-intervals)) — not on a timer. Pressing **Clear snapshots** wipes both the rabbit and this cache. Delay before the gallery refreshes after a photo is set by `SNAPSHOT_REFRESH_DELAY` (default 3 s) and the number of gallery slots by `SNAPSHOT_SLOT_COUNT` (default 12), both in `const.py`.
+> **Snapshot serving:** snapshots are **not** written to `config/www` (which would serve the rabbit's photos unauthenticated at `/local/...` to anyone who can reach the instance). Instead, each image entity fetches its bytes from the device on demand through Home Assistant's authenticated image proxy, backed by a small bounded in-memory cache (`SNAPSHOT_IMAGE_CACHE_SIZE`, default 12). The snapshot list is refreshed on demand — at integration load and after taking or clearing photos (see [Update Intervals](#update-intervals)) — not on a timer. Pressing **Clear snapshots** wipes the rabbit and drops the in-memory cache. Delay before the gallery refreshes after a photo is set by `SNAPSHOT_REFRESH_DELAY` (default 3 s) and the number of gallery slots by `SNAPSHOT_SLOT_COUNT` (default 12), both in `const.py`.
 
 ---
 
@@ -141,8 +141,8 @@ The rabbit's webcam is not exposed as a native entity. Use Home Assistant's buil
 | Snapshots | On demand (integration load + after taking or clearing photos) |
 | Voices, moods, radios | 4 hours |
 
-Snapshots are **not** polled on a timer. The snapshot list is fetched (and the
-local cache synced) when the integration loads and whenever you press **Snapshot**
+Snapshots are **not** polled on a timer. The snapshot list is fetched when the
+integration loads and whenever you press **Snapshot**
 or **Clear snapshots**, avoiding needless requests to the device every few
 seconds. A photo taken outside Home Assistant (e.g. from the rabbit's own web UI
 or an RFID tag) appears after the next integration reload or button press.
@@ -153,7 +153,7 @@ or an RFID tag) appears after the next integration reload or button press.
 
 A ready-to-use dashboard (`dashboard.yaml`) is included in the repository. It covers four tabs: **Apparence** (LEDs, voice, ears), **Photos** (take a photo + a clickable 3-column snapshot gallery, tap a thumbnail for a full-screen view), **Sounds** (local sounds & radios), and **État** (device status & controls).
 
-> **Note:** The entity IDs in the dashboard use Home Assistant's auto-generated names, which depend on your HA language setting. If your HA is in French the IDs match as-is; otherwise adjust them to your locale.
+> **Note:** The integration's own buttons (Speak, Mood, Sound, Radio, ears, LEDs) share their state internally and no longer depend on entity IDs, so they keep working whatever your HA language and even if you rename an entity. The dashboard cards, however, still reference entities by ID: the select/number/text/light/switch entities use fixed IDs (`select.openkarotz_voice`, `number.openkarotz_pulse_speed`, …), while the sensors and buttons keep Home Assistant's auto-generated names, which depend on your HA language setting — adjust those to your locale if needed.
 
 ### Import the dashboard
 

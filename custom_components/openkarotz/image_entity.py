@@ -28,8 +28,8 @@ class KarotzSnapshotSlotImage(CoordinatorEntity, ImageEntity):
 
     One entity is created per gallery slot (slot 0 = most recent snapshot).
     Bound to a ``picture-entity`` card, tapping a slot opens Home Assistant's
-    native full-screen image dialog. Content is read from the local cache
-    populated by the fast coordinator, so it loads fast and works remotely.
+    native full-screen image dialog. Bytes are fetched from the device on
+    demand and served through Home Assistant's authenticated image proxy.
     """
 
     _attr_has_entity_name = True
@@ -90,7 +90,7 @@ class KarotzSnapshotSlotImage(CoordinatorEntity, ImageEntity):
                 second,
                 tzinfo=dt_util.DEFAULT_TIME_ZONE,
             )
-        except ValueError, TypeError:
+        except (ValueError, TypeError):
             return None
 
     def _snapshot_id(self) -> str | None:
@@ -133,17 +133,14 @@ class KarotzSnapshotSlotImage(CoordinatorEntity, ImageEntity):
             self._attr_image_last_updated = self._parse_snapshot_time(self._current_id)
 
     async def async_image(self) -> bytes | None:
-        """Return the cached bytes for this slot's snapshot."""
+        """Fetch this slot's snapshot bytes from the device on demand."""
         snapshot_id = self._snapshot_id()
         if not snapshot_id:
             return None
-        path = self.coordinator.snapshot_cache_dir / snapshot_id
         try:
-            return await self.hass.async_add_executor_job(path.read_bytes)
-        except FileNotFoundError:
-            return None
+            return await self.coordinator.async_get_image(snapshot_id)
         except Exception:
-            _LOGGER.exception("Failed to read snapshot slot image %s", snapshot_id)
+            _LOGGER.exception("Failed to fetch snapshot slot image %s", snapshot_id)
             return None
 
     @property

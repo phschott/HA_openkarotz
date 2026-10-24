@@ -24,6 +24,8 @@ if TYPE_CHECKING:
     from homeassistant.helpers.entity_platform import AddEntitiesCallback
     from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
+    from .shared_state import KarotzSharedState
+
 MANUFACTURER = "Karotz"
 MODEL = "OpenKarotz"
 
@@ -67,10 +69,12 @@ async def async_setup_entry(
 ) -> None:
     """Set up OpenKarotz select entities."""
     coordinator = hass.data[DOMAIN][entry.entry_id]["coordinator"]
+    shared_state = hass.data[DOMAIN][entry.entry_id]["shared_state"]
 
     entities = [
         KarotzSelect(
             coordinator,
+            shared_state,
             translation_key,
             data_key,
             options_key,
@@ -104,11 +108,13 @@ class KarotzBaseSelect(
     def __init__(
         self,
         coordinator: DataUpdateCoordinator,
+        shared_state: KarotzSharedState,
     ) -> None:
         """Initialize select entity."""
         super().__init__(coordinator)
 
         self.api = coordinator.api
+        self.shared_state = shared_state
 
         self._attr_options = []
 
@@ -138,6 +144,13 @@ class KarotzBaseSelect(
         elif self.options:
             self._attr_current_option = self.options[0]
 
+        # Seed the shared state so the buttons read a consistent selection
+        # before the user touches the select.
+        self._store_shared_option(self._attr_current_option)
+
+    def _store_shared_option(self, option: str | None) -> None:
+        """Write the selected option into the shared state - override."""
+
     @property
     def available(self) -> bool:
         """Return availability."""
@@ -152,6 +165,7 @@ class KarotzSelect(
     def __init__(  # noqa: PLR0913
         self,
         coordinator: DataUpdateCoordinator,
+        shared_state: KarotzSharedState,
         translation_key: str,
         data_key: str,
         options_key: str,
@@ -159,13 +173,17 @@ class KarotzSelect(
         icon: str,
     ) -> None:
         """Initialize select entity."""
-        super().__init__(coordinator)
+        super().__init__(coordinator, shared_state)
 
         self.data_key = data_key
 
         self.options_key = options_key
 
         self.option_label = option_label
+
+        # Shared-state attribute this select maps to. The "radios" select
+        # stores its value under "radio".
+        self._field = "radio" if translation_key == "radios" else translation_key
 
         self.entity_id = f"select.openkarotz_{translation_key}"
 
@@ -221,4 +239,10 @@ class KarotzSelect(
 
         self._attr_current_option = option
 
+        self._store_shared_option(option)
+
         self.async_write_ha_state()
+
+    def _store_shared_option(self, option: str | None) -> None:
+        """Store the selected option into the shared state."""
+        setattr(self.shared_state, self._field, option)

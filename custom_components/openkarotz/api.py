@@ -15,21 +15,29 @@ class KarotzAPI:
         """Initialize API client with device host."""
         self.host = host
 
-    async def _get(self, path: str) -> Any:
+    async def _get(self, path: str, params: dict[str, Any] | None = None) -> Any:
         """Make GET request to API endpoint."""
         url = f"http://{self.host}{path}"
         try:
-            async with aiohttp.ClientSession() as session, session.get(url) as resp:
+            async with (
+                aiohttp.ClientSession() as session,
+                session.get(url, params=params) as resp,
+            ):
                 return await resp.json(content_type=None)
         except Exception as err:
             _LOGGER.warning("API request failed for %s: %s", path, err)
             raise
 
-    async def _get_binary(self, path: str) -> bytes:
+    async def _get_binary(
+        self, path: str, params: dict[str, Any] | None = None
+    ) -> bytes:
         """Get binary data from API endpoint."""
         url = f"http://{self.host}{path}"
         try:
-            async with aiohttp.ClientSession() as session, session.get(url) as resp:
+            async with (
+                aiohttp.ClientSession() as session,
+                session.get(url, params=params) as resp,
+            ):
                 return await resp.read()
         except Exception as err:
             _LOGGER.warning("Binary API request failed for %s: %s", path, err)
@@ -48,7 +56,7 @@ class KarotzAPI:
 
     async def wakeup(self) -> None:
         """Wake up the device."""
-        await self._get("/cgi-bin/wakeup?silent=1")
+        await self._get("/cgi-bin/wakeup", params={"silent": 1})
 
     async def sleep(self) -> None:
         """Put device to sleep."""
@@ -85,7 +93,10 @@ class KarotzAPI:
             right: Right ear position (0-16)
 
         """
-        await self._get(f"/cgi-bin/ears?left={left}&right={right}&noreset=1")
+        await self._get(
+            "/cgi-bin/ears",
+            params={"left": left, "right": right, "noreset": 1},
+        )
 
     async def ears_reset(self) -> None:
         """Reset ears to default position."""
@@ -93,7 +104,7 @@ class KarotzAPI:
 
     async def led_off(self) -> None:
         """Turn off LEDs."""
-        await self._get("/cgi-bin/leds?color=000000")
+        await self._get("/cgi-bin/leds", params={"color": "000000"})
 
     async def leds(
         self, pulse: int, hex_color1: str, speed: int, hex_color2: str
@@ -109,7 +120,13 @@ class KarotzAPI:
 
         """
         await self._get(
-            f"/cgi-bin/leds?pulse={pulse}&color={hex_color1}&speed={speed}&color2={hex_color2}"
+            "/cgi-bin/leds",
+            params={
+                "pulse": pulse,
+                "color": hex_color1,
+                "speed": speed,
+                "color2": hex_color2,
+            },
         )
 
     # =====================
@@ -121,7 +138,7 @@ class KarotzAPI:
 
     async def moods(self, mood_id: str) -> None:
         """Play specific mood animation."""
-        await self._get(f"/cgi-bin/apps/moods?id={mood_id}")
+        await self._get("/cgi-bin/apps/moods", params={"id": mood_id})
 
     async def clock(self) -> None:
         """Display clock."""
@@ -136,7 +153,7 @@ class KarotzAPI:
             text: Text to speak
 
         """
-        await self._get(f"/cgi-bin/tts?voice={voice_id}&text={text}")
+        await self._get("/cgi-bin/tts", params={"voice": voice_id, "text": text})
 
     # =====================
     # AUDIO / RADIOS
@@ -147,19 +164,19 @@ class KarotzAPI:
 
     async def play_sound(self, sound_id: str) -> None:
         """Play a local sound by id."""
-        await self._get(f"/cgi-bin/sound?id={sound_id}")
+        await self._get("/cgi-bin/sound", params={"id": sound_id})
 
     async def sound_url(self, karotz_stream_url: str) -> None:
         """Play audio from URL."""
-        await self._get(f"/cgi-bin/sound?url={karotz_stream_url}")
+        await self._get("/cgi-bin/sound", params={"url": karotz_stream_url})
 
     async def sound_pause(self) -> None:
         """Pause audio playback."""
-        await self._get("/cgi-bin/sound_control?cmd=pause")
+        await self._get("/cgi-bin/sound_control", params={"cmd": "pause"})
 
     async def sound_quit(self) -> None:
         """Stop audio playback."""
-        await self._get("/cgi-bin/sound_control?cmd=quit")
+        await self._get("/cgi-bin/sound_control", params={"cmd": "quit"})
 
     async def sound_control(self, cmd: str) -> None:
         """
@@ -169,14 +186,14 @@ class KarotzAPI:
             cmd: Control command (play, pause, stop, etc.)
 
         """
-        await self._get(f"/cgi-bin/sound_control?cmd={cmd}")
+        await self._get("/cgi-bin/sound_control", params={"cmd": cmd})
 
     # =====================
     # SNAPSHOT / WEBCAM
     # =====================
     async def snapshot(self) -> None:
         """Take a snapshot."""
-        await self._get("/cgi-bin/snapshot?silent=1")
+        await self._get("/cgi-bin/snapshot", params={"silent": 1})
 
     async def clear_snapshots(self) -> None:
         """Clear all snapshots."""
@@ -188,4 +205,6 @@ class KarotzAPI:
 
     async def snapshot_get(self, filename: str) -> bytes:
         """Get snapshot image by filename."""
-        return await self._get_binary(f"/cgi-bin/snapshot_get?filename={filename}")
+        return await self._get_binary(
+            "/cgi-bin/snapshot_get", params={"filename": filename}
+        )

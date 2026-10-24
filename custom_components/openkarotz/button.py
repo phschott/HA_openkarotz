@@ -18,11 +18,6 @@ from .const import (
     DEVICE_PICTURE,
     DEVICE_SOUND,
     DOMAIN,
-    ENTITY_MOOD_SELECT,
-    ENTITY_RADIOS_SELECT,
-    ENTITY_SOUND_SELECT,
-    ENTITY_TTS_TEXT,
-    ENTITY_VOICE_SELECT,
     MANUFACTURER,
     MODEL,
     SNAPSHOT_REFRESH_DELAY,
@@ -32,10 +27,12 @@ if TYPE_CHECKING:
     from datetime import datetime
 
     from homeassistant.config_entries import ConfigEntry
-    from homeassistant.core import HomeAssistant, State
+    from homeassistant.core import HomeAssistant
     from homeassistant.helpers.device_registry import DeviceInfo
     from homeassistant.helpers.entity_platform import AddEntitiesCallback
     from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
+
+    from .shared_state import KarotzSharedState
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -121,15 +118,16 @@ async def async_setup_entry(
     """Set up button entities."""
     coordinator = hass.data[DOMAIN][entry.entry_id]["coordinator"]
     snapshot_coordinator = hass.data[DOMAIN][entry.entry_id]["snapshot_coordinator"]
+    shared_state = hass.data[DOMAIN][entry.entry_id]["shared_state"]
 
     entities = [KarotzButton(coordinator, button_config) for button_config in BUTTONS]
 
     entities.extend(
         [
-            KarotzSpeakButton(coordinator),
-            KarotzMoodButton(coordinator),
-            KarotzPlaySoundButton(coordinator),
-            KarotzPlayRadioButton(coordinator),
+            KarotzSpeakButton(coordinator, shared_state),
+            KarotzMoodButton(coordinator, shared_state),
+            KarotzPlaySoundButton(coordinator, shared_state),
+            KarotzPlayRadioButton(coordinator, shared_state),
             KarotzSnapshotButton(coordinator, snapshot_coordinator),
             KarotzClearSnapshotsButton(coordinator, snapshot_coordinator),
         ]
@@ -160,21 +158,6 @@ class KarotzBaseButton(CoordinatorEntity, ButtonEntity):
             "manufacturer": MANUFACTURER,
             "model": MODEL,
         }
-
-    def _get_state(self, entity_id: str) -> State | None:
-        """Get entity state."""
-        return self.hass.states.get(entity_id)
-
-    def _get_int_state(self, entity_id: str, default: int = 0) -> int:
-        """Get entity state as integer."""
-        state = self._get_state(entity_id)
-        if state is None:
-            return default
-
-        try:
-            return int(float(state.state))
-        except ValueError, TypeError:
-            return default
 
 
 class KarotzButton(KarotzBaseButton):
@@ -267,8 +250,8 @@ class KarotzClearSnapshotsButton(KarotzBaseButton):
         except aiohttp.ClientResponseError as err:
             _LOGGER.debug("clear_snapshots completed despite header issue: %s", err)
 
-        # Remove the locally cached copies so HA reflects the deletion at once.
-        await self.snapshot_coordinator.async_clear_cache()
+        # Drop the in-memory copies so HA reflects the deletion at once.
+        self.snapshot_coordinator.clear_image_cache()
 
         # Refresh so the snapshot sensor/gallery update immediately.
         await self.snapshot_coordinator.async_request_refresh()
@@ -280,34 +263,33 @@ class KarotzSpeakButton(KarotzBaseButton):
     device_id = DEVICE_SOUND
     device_name = "OpenKarotz Sound"
 
-    def __init__(self, coordinator: DataUpdateCoordinator) -> None:
+    def __init__(
+        self, coordinator: DataUpdateCoordinator, shared_state: KarotzSharedState
+    ) -> None:
         """Initialize speak button."""
         super().__init__(coordinator)
+        self.shared_state = shared_state
         self._attr_translation_key = "speak"
         self._attr_unique_id = "openkarotz_speak"
         self._attr_icon = "mdi:account-voice"
 
     async def async_press(self) -> None:
         """Speak selected text with selected voice."""
-        voice_state = self._get_state(ENTITY_VOICE_SELECT)
-        text_state = self._get_state(ENTITY_TTS_TEXT)
+        voice = self.shared_state.voice
+        text = self.shared_state.tts_text
 
-        if not voice_state or not text_state:
-            _LOGGER.warning(
-                "Missing voice selection or text for TTS. Voice: %s, Text: %s",
-                voice_state,
-                text_state,
-            )
+        if not voice:
+            _LOGGER.warning("Missing voice selection for TTS")
             return
 
-        if not text_state.state or text_state.state.strip() == "":
+        if not text or text.strip() == "":
             _LOGGER.warning("TTS text is empty")
             return
 
         try:
-            voice_id = voice_state.state.split("-")[0].strip()
-            await self.api.tts(voice_id, text_state.state)
-            _LOGGER.debug("TTS speaking with voice %s: %s", voice_id, text_state.state)
+            voice_id = voice.split("-")[0].strip()
+            await self.api.tts(voice_id, text)
+            _LOGGER.debug("TTS speaking with voice %s: %s", voice_id, text)
         except Exception:
             _LOGGER.exception("Failed to speak TTS")
 
@@ -318,23 +300,26 @@ class KarotzMoodButton(KarotzBaseButton):
     device_id = DEVICE_SOUND
     device_name = "OpenKarotz Sound"
 
-    def __init__(self, coordinator: DataUpdateCoordinator) -> None:
+    def __init__(
+        self, coordinator: DataUpdateCoordinator, shared_state: KarotzSharedState
+    ) -> None:
         """Initialize mood button."""
         super().__init__(coordinator)
+        self.shared_state = shared_state
         self._attr_translation_key = "mood"
         self._attr_unique_id = "openkarotz_mood"
         self._attr_icon = "mdi:emoticon-outline"
 
     async def async_press(self) -> None:
         """Play selected mood."""
-        mood_state = self._get_state(ENTITY_MOOD_SELECT)
+        mood = self.shared_state.mood
 
-        if mood_state is None:
+        if not mood:
             _LOGGER.warning("No mood selected")
             return
 
         try:
-            mood_id = mood_state.state.split("-")[0].strip()
+            mood_id = mood.split("-")[0].strip()
             await self.api.moods(mood_id)
             _LOGGER.debug("Playing mood %s", mood_id)
         except Exception:
@@ -347,23 +332,26 @@ class KarotzPlaySoundButton(KarotzBaseButton):
     device_id = DEVICE_SOUND
     device_name = "OpenKarotz Sound"
 
-    def __init__(self, coordinator: DataUpdateCoordinator) -> None:
+    def __init__(
+        self, coordinator: DataUpdateCoordinator, shared_state: KarotzSharedState
+    ) -> None:
         """Initialize play sound button."""
         super().__init__(coordinator)
+        self.shared_state = shared_state
         self._attr_translation_key = "play_sound"
         self._attr_unique_id = "openkarotz_play_sound"
         self._attr_icon = "mdi:music-note"
 
     async def async_press(self) -> None:
         """Play the selected local sound."""
-        sound_state = self._get_state(ENTITY_SOUND_SELECT)
+        sound = self.shared_state.sound
 
-        if sound_state is None:
+        if not sound:
             _LOGGER.warning("No sound selected")
             return
 
         try:
-            sound_id = sound_state.state.strip()
+            sound_id = sound.strip()
             await self.api.play_sound(sound_id)
             _LOGGER.debug("Playing sound %s", sound_id)
         except Exception:
@@ -376,23 +364,26 @@ class KarotzPlayRadioButton(KarotzBaseButton):
     device_id = DEVICE_SOUND
     device_name = "OpenKarotz Sound"
 
-    def __init__(self, coordinator: DataUpdateCoordinator) -> None:
+    def __init__(
+        self, coordinator: DataUpdateCoordinator, shared_state: KarotzSharedState
+    ) -> None:
         """Initialize play radio button."""
         super().__init__(coordinator)
+        self.shared_state = shared_state
         self._attr_translation_key = "play_radio"
         self._attr_unique_id = "openkarotz_play_radio"
         self._attr_icon = "mdi:radio"
 
     async def async_press(self) -> None:
         """Play the selected radio stream."""
-        radio_state = self._get_state(ENTITY_RADIOS_SELECT)
+        radio = self.shared_state.radio
 
-        if radio_state is None:
+        if not radio:
             _LOGGER.warning("No radio selected")
             return
 
         try:
-            radio_id_str = radio_state.state.split(" - ")[0].strip()
+            radio_id_str = radio.split(" - ")[0].strip()
             streams = (
                 self.coordinator.data.get("radios", {}).get("streams", [])
                 if self.coordinator.data

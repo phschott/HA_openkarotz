@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 from .api import KarotzAPI
 from .const import DOMAIN, PLATFORMS
 from .coordinator import FastCoordinator, KarotzCoordinator, SnapshotCoordinator
+from .shared_state import KarotzSharedState
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
@@ -48,6 +49,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         "coordinator": coordinator,
         "fast_coordinator": fast_coordinator,
         "snapshot_coordinator": snapshot_coordinator,
+        "shared_state": KarotzSharedState(),
     }
 
     # Set up platforms

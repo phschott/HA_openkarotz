@@ -23,6 +23,8 @@ if TYPE_CHECKING:
     from homeassistant.helpers.entity_platform import AddEntitiesCallback
     from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
+    from .shared_state import KarotzSharedState
+
 MANUFACTURER = "Karotz"
 MODEL = "OpenKarotz"
 
@@ -45,10 +47,12 @@ async def async_setup_entry(
 ) -> None:
     """Set up text entities."""
     coordinator = hass.data[DOMAIN][entry.entry_id]["coordinator"]
+    shared_state = hass.data[DOMAIN][entry.entry_id]["shared_state"]
 
     entities = [
         KarotzText(
             coordinator,
+            shared_state,
             translation_key,
             device_id,
             device_name,
@@ -82,9 +86,11 @@ class KarotzBaseText(
     def __init__(
         self,
         coordinator: DataUpdateCoordinator,
+        shared_state: KarotzSharedState,
     ) -> None:
         """Initialize text entity."""
         super().__init__(coordinator)
+        self.shared_state = shared_state
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -111,12 +117,16 @@ class KarotzBaseText(
         ):
             self._attr_native_value = last_state.state
 
+        # Seed the shared state with the current (restored or default) text.
+        self.shared_state.tts_text = self._attr_native_value or ""
+
     async def async_set_value(
         self,
         value: str,
     ) -> None:
         """Set new text value."""
         self._attr_native_value = value
+        self.shared_state.tts_text = value
 
         self.async_write_ha_state()
 
@@ -129,6 +139,7 @@ class KarotzText(
     def __init__(  # noqa: PLR0913
         self,
         coordinator: DataUpdateCoordinator,
+        shared_state: KarotzSharedState,
         translation_key: str,
         device_id: str,
         device_name: str,
@@ -136,7 +147,7 @@ class KarotzText(
         default_value: str,
     ) -> None:
         """Initialize text entity."""
-        super().__init__(coordinator)
+        super().__init__(coordinator, shared_state)
 
         self.device_id = device_id
         self.device_name = device_name

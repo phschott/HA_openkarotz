@@ -24,6 +24,8 @@ if TYPE_CHECKING:
     from homeassistant.helpers.entity_platform import AddEntitiesCallback
     from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
+    from .shared_state import KarotzSharedState
+
 MANUFACTURER = "Karotz"
 MODEL = "OpenKarotz"
 
@@ -46,11 +48,13 @@ async def async_setup_entry(
 ) -> None:
     """Set up switch entities."""
     coordinator = hass.data[DOMAIN][entry.entry_id]["fast_coordinator"]
+    shared_state = hass.data[DOMAIN][entry.entry_id]["shared_state"]
 
     entities = [
         KarotzSwitch(
             coordinator,
             hass,
+            shared_state,
             translation_key,
             device_id,
             device_name,
@@ -85,10 +89,12 @@ class KarotzBaseSwitch(
         self,
         coordinator: DataUpdateCoordinator,
         hass: HomeAssistant,
+        shared_state: KarotzSharedState,
     ) -> None:
         """Initialize switch entity."""
         super().__init__(coordinator)
         self.hass = hass
+        self.shared_state = shared_state
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -111,6 +117,9 @@ class KarotzBaseSwitch(
         if last_state is not None:
             self._attr_is_on = last_state.state == "on"
 
+        # Seed the shared state with the current (restored or default) value.
+        self._store_shared_state()
+
     @property
     def is_on(self) -> bool:
         """Return True if the switch is on."""
@@ -122,6 +131,8 @@ class KarotzBaseSwitch(
     ) -> None:
         """Turn the switch on."""
         self._attr_is_on = True
+
+        self._store_shared_state()
 
         self.async_write_ha_state()
 
@@ -135,10 +146,15 @@ class KarotzBaseSwitch(
         """Turn the switch off."""
         self._attr_is_on = False
 
+        self._store_shared_state()
+
         self.async_write_ha_state()
 
         # Apply LED settings immediately
         await self._on_state_changed()
+
+    def _store_shared_state(self) -> None:
+        """Write this switch's state into the shared state - override."""
 
     async def _on_state_changed(self) -> None:
         """Handle state change - override in subclasses."""
@@ -153,6 +169,7 @@ class KarotzSwitch(
         self,
         coordinator: DataUpdateCoordinator,
         hass: HomeAssistant,
+        shared_state: KarotzSharedState,
         translation_key: str,
         device_id: str,
         device_name: str,
@@ -160,7 +177,7 @@ class KarotzSwitch(
         default_state: bool,  # noqa: FBT001
     ) -> None:
         """Initialize switch entity."""
-        super().__init__(coordinator, hass)
+        super().__init__(coordinator, hass, shared_state)
 
         self.device_id = device_id
         self.device_name = device_name
@@ -176,6 +193,11 @@ class KarotzSwitch(
 
         self._attr_is_on = default_state
 
+    def _store_shared_state(self) -> None:
+        """Mirror the pulse switch state into the shared state."""
+        if self.device_id == "karotz_leds":
+            self.shared_state.led_pulse = self._attr_is_on
+
     def _handle_coordinator_update(self) -> None:
         """Sync LED pulse state from device status."""
         if self.device_id == "karotz_leds" and self.coordinator.data:
@@ -183,9 +205,10 @@ class KarotzSwitch(
             led_pulse = status.get("led_pulse")
             if led_pulse is not None:
                 self._attr_is_on = led_pulse == "1"
+                self._store_shared_state()
         super()._handle_coordinator_update()
 
     async def _on_state_changed(self) -> None:
         """Apply LED settings when pulse switch changes."""
         if self.device_id == "karotz_leds":
-            await apply_led_settings(self.hass, self.api)
+            await apply_led_settings(self.api, self.shared_state)

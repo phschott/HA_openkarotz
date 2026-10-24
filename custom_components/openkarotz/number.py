@@ -17,8 +17,6 @@ from .const import (
     EAR_DEFAULT_VALUE,
     EAR_MAX_VALUE,
     EAR_MIN_VALUE,
-    ENTITY_EAR_LEFT,
-    ENTITY_EAR_RIGHT,
     LED_SPEED_DEFAULT_VALUE,
     LED_SPEED_MAX_VALUE,
     LED_SPEED_MIN_VALUE,
@@ -33,6 +31,8 @@ if TYPE_CHECKING:
     from homeassistant.helpers.device_registry import DeviceInfo
     from homeassistant.helpers.entity_platform import AddEntitiesCallback
     from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
+
+    from .shared_state import KarotzSharedState
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -83,11 +83,13 @@ async def async_setup_entry(
 ) -> None:
     """Set up number entities."""
     coordinator = hass.data[DOMAIN][entry.entry_id]["coordinator"]
+    shared_state = hass.data[DOMAIN][entry.entry_id]["shared_state"]
 
     entities = [
         KarotzNumber(
             coordinator,
             hass,
+            shared_state,
             number_config,
         )
         for number_config in NUMBERS
@@ -101,11 +103,17 @@ class KarotzBaseNumber(CoordinatorEntity, RestoreEntity, NumberEntity):
 
     _attr_has_entity_name = True
 
-    def __init__(self, coordinator: DataUpdateCoordinator, hass: HomeAssistant) -> None:
+    def __init__(
+        self,
+        coordinator: DataUpdateCoordinator,
+        hass: HomeAssistant,
+        shared_state: KarotzSharedState,
+    ) -> None:
         """Initialize number entity."""
         super().__init__(coordinator)
         self.api = coordinator.api
         self.hass = hass
+        self.shared_state = shared_state
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -122,19 +130,25 @@ class KarotzBaseNumber(CoordinatorEntity, RestoreEntity, NumberEntity):
         await super().async_added_to_hass()
 
         last_state = await self.async_get_last_state()
-        if last_state is None:
-            return
+        if last_state is not None:
+            with contextlib.suppress(ValueError, TypeError):
+                self._attr_native_value = float(last_state.state)
 
-        with contextlib.suppress(ValueError, TypeError):
-            self._attr_native_value = float(last_state.state)
+        # Seed the shared state with the current (restored or default) value so
+        # the other entities read a consistent value before any user change.
+        self._store_shared_value(self._attr_native_value)
 
     async def async_set_native_value(self, value: float) -> None:
         """Set new value."""
         self._attr_native_value = value
+        self._store_shared_value(value)
         self.async_write_ha_state()
 
         # Call device-specific handlers for ear movement or LED settings
         await self._on_value_changed(value)
+
+    def _store_shared_value(self, value: float) -> None:
+        """Write this entity's value into the shared state - override."""
 
     async def _on_value_changed(self, value: float) -> None:
         """Handle value change - override in subclasses."""
@@ -147,13 +161,19 @@ class KarotzNumber(KarotzBaseNumber):
         self,
         coordinator: DataUpdateCoordinator,
         hass: HomeAssistant,
+        shared_state: KarotzSharedState,
         number_config: dict[str, Any],
     ) -> None:
         """Initialize number entity."""
-        super().__init__(coordinator, hass)
+        super().__init__(coordinator, hass, shared_state)
 
         self.device_id = number_config["device_id"]
         self.device_name = number_config["device_name"]
+        # Pin a stable, language-independent entity_id for the dashboard.
+        self.entity_id = f"number.openkarotz_{number_config['translation_key']}"
+        # Shared-state attribute this number maps to (ear_left/ear_right/
+        # pulse_speed); matches the translation key.
+        self._field = number_config["translation_key"]
         self._attr_translation_key = number_config["translation_key"]
         self._attr_unique_id = f"openkarotz_{number_config['translation_key']}"
         self._attr_icon = number_config["icon"]
@@ -164,24 +184,24 @@ class KarotzNumber(KarotzBaseNumber):
         self._attr_mode = number_config["mode"]
         self._attr_entity_category = number_config["entity_category"]
 
+    def _store_shared_value(self, value: float) -> None:
+        """Store the value into the shared state."""
+        setattr(self.shared_state, self._field, int(value))
+
     async def _on_value_changed(self, value: float) -> None:  # noqa: ARG002
         """Handle value change - move ears or apply LED settings."""
         if self.device_id == DEVICE_EARS:
             await self._move_ears_on_change()
         elif self.device_id == DEVICE_LEDS:
             # Apply LED settings immediately when pulse speed changes
-            await apply_led_settings(self.hass, self.api)
+            await apply_led_settings(self.api, self.shared_state)
 
     async def _move_ears_on_change(self) -> None:
-        """Move ears when their values change."""
+        """Move both ears to the positions held in the shared state."""
         try:
-            left_state = self.hass.states.get(ENTITY_EAR_LEFT)
-            right_state = self.hass.states.get(ENTITY_EAR_RIGHT)
-
-            if left_state and right_state:
-                left = int(float(left_state.state))
-                right = int(float(right_state.state))
-                await self.api.ears(left, right)
-                _LOGGER.debug("Ears moved to left=%s, right=%s", left, right)
+            left = self.shared_state.ear_left
+            right = self.shared_state.ear_right
+            await self.api.ears(left, right)
+            _LOGGER.debug("Ears moved to left=%s, right=%s", left, right)
         except Exception as err:  # noqa: BLE001
             _LOGGER.warning("Failed to move ears: %s", err)
