@@ -2,6 +2,7 @@
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg)](https://github.com/hacs/integration)
 [![GitHub release](https://img.shields.io/github/release/phschott/HA_openkarotz.svg)](https://github.com/phschott/HA_openkarotz/releases)
+[![GitHub downloads](https://img.shields.io/github/downloads/phschott/HA_openkarotz/total.svg)](https://github.com/phschott/HA_openkarotz/releases)
 [![GitHub license](https://img.shields.io/github/license/phschott/HA_openkarotz.svg)](LICENSE)
 [![HA community](https://img.shields.io/badge/community-Home%20Assistant-blue.svg)](https://community.home-assistant.io)
 
