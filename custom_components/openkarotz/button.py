@@ -247,7 +247,7 @@ class KarotzEarsActionButton(KarotzBaseButton):
                 continue
             try:
                 value = int(float(raw))
-            except (ValueError, TypeError):
+            except ValueError, TypeError:
                 _LOGGER.debug("Ignoring non-numeric ear position %r", raw)
                 continue
             entity.update_from_device(value)
