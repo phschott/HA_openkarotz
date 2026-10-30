@@ -95,6 +95,12 @@ async def async_setup_entry(
         for number_config in NUMBERS
     ]
 
+    # Expose the ear numbers (keyed by field) so the "ears random" button can
+    # push the positions the device reports back into the sliders.
+    hass.data[DOMAIN][entry.entry_id]["ear_numbers"] = {
+        entity.field: entity for entity in entities if entity.device_id == DEVICE_EARS
+    }
+
     async_add_entities(entities)
 
 
@@ -173,7 +179,7 @@ class KarotzNumber(KarotzBaseNumber):
         self.entity_id = f"number.openkarotz_{number_config['translation_key']}"
         # Shared-state attribute this number maps to (ear_left/ear_right/
         # pulse_speed); matches the translation key.
-        self._field = number_config["translation_key"]
+        self.field = number_config["translation_key"]
         self._attr_translation_key = number_config["translation_key"]
         self._attr_unique_id = f"openkarotz_{number_config['translation_key']}"
         self._attr_icon = number_config["icon"]
@@ -186,7 +192,18 @@ class KarotzNumber(KarotzBaseNumber):
 
     def _store_shared_value(self, value: float) -> None:
         """Store the value into the shared state."""
-        setattr(self.shared_state, self._field, int(value))
+        setattr(self.shared_state, self.field, int(value))
+
+    def update_from_device(self, value: int) -> None:
+        """
+        Set a value reported by the device, without calling back the API.
+
+        Used e.g. by the "ears random" button to reflect the positions the
+        device chose into the slider and the shared state.
+        """
+        self._attr_native_value = float(value)
+        self._store_shared_value(value)
+        self.async_write_ha_state()
 
     async def _on_value_changed(self, value: float) -> None:  # noqa: ARG002
         """Handle value change - move ears or apply LED settings."""

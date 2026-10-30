@@ -88,9 +88,14 @@ class KarotzAPI:
     # =====================
     # EARS / LEDS
     # =====================
-    async def ears_random(self) -> None:
-        """Move ears to random position."""
-        await self._get("/cgi-bin/ears_random")
+    async def ears_random(self) -> Any:
+        """
+        Move ears to a random position.
+
+        Returns the device response with the resulting positions, e.g.
+        ``{"left": "7", "right": "11", "return": "0"}``.
+        """
+        return await self._get("/cgi-bin/ears_random")
 
     async def ears(self, left: int, right: int) -> None:
         """
@@ -106,9 +111,14 @@ class KarotzAPI:
             params={"left": left, "right": right, "noreset": 1},
         )
 
-    async def ears_reset(self) -> None:
-        """Reset ears to default position."""
-        await self._get("/cgi-bin/ears_reset")
+    async def ears_reset(self) -> Any:
+        """
+        Reset ears to their default position.
+
+        Returns the device response, which may carry the resulting positions
+        like :meth:`ears_random` (e.g. ``{"left": "0", "right": "0", ...}``).
+        """
+        return await self._get("/cgi-bin/ears_reset")
 
     async def led_off(self) -> None:
         """Turn off LEDs."""
