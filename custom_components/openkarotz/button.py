@@ -59,20 +59,6 @@ BUTTONS = [
         "entity_category": None,
     },
     {
-        "method": "ears_random",
-        "icon": "mdi:rabbit-variant-outline",
-        "device_id": DEVICE_EARS,
-        "device_name": "OpenKarotz Ears",
-        "entity_category": None,
-    },
-    {
-        "method": "ears_reset",
-        "icon": "mdi:restore",
-        "device_id": DEVICE_EARS,
-        "device_name": "OpenKarotz Ears",
-        "entity_category": EntityCategory.CONFIG,
-    },
-    {
         "method": "led_off",
         "icon": "mdi:lightbulb-off",
         "device_id": DEVICE_LEDS,
@@ -116,14 +102,29 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up button entities."""
-    coordinator = hass.data[DOMAIN][entry.entry_id]["coordinator"]
-    snapshot_coordinator = hass.data[DOMAIN][entry.entry_id]["snapshot_coordinator"]
-    shared_state = hass.data[DOMAIN][entry.entry_id]["shared_state"]
+    entry_data = hass.data[DOMAIN][entry.entry_id]
+    coordinator = entry_data["coordinator"]
+    snapshot_coordinator = entry_data["snapshot_coordinator"]
+    shared_state = entry_data["shared_state"]
 
     entities = [KarotzButton(coordinator, button_config) for button_config in BUTTONS]
 
     entities.extend(
         [
+            KarotzEarsActionButton(
+                coordinator,
+                entry_data,
+                "ears_random",
+                "mdi:rabbit-variant-outline",
+            ),
+            KarotzEarsActionButton(
+                coordinator,
+                entry_data,
+                "ears_reset",
+                "mdi:restore",
+                entity_category=EntityCategory.CONFIG,
+                fallback=0,
+            ),
             KarotzSpeakButton(coordinator, shared_state),
             KarotzMoodButton(coordinator, shared_state),
             KarotzPlaySoundButton(coordinator, shared_state),
@@ -184,6 +185,72 @@ class KarotzButton(KarotzBaseButton):
             await getattr(self.api, self.method)()
         except aiohttp.ClientResponseError as err:
             _LOGGER.debug("API request completed despite header issue: %s", err)
+
+
+class KarotzEarsActionButton(KarotzBaseButton):
+    """Run an ears API action, then sync the ear sliders to the result."""
+
+    device_id = DEVICE_EARS
+    device_name = "OpenKarotz Ears"
+
+    def __init__(
+        self,
+        coordinator: DataUpdateCoordinator,
+        entry_data: dict[str, Any],
+        method: str,
+        icon: str,
+        entity_category: EntityCategory | None = None,
+        fallback: int | None = None,
+    ) -> None:
+        """Initialize an ears-action button."""
+        super().__init__(coordinator)
+        # Per-entry data dict; the number platform fills in "ear_numbers"
+        # later during setup, so it is read at press time, not now.
+        self._entry_data = entry_data
+        self._method = method
+        # Position to apply when the response carries no left/right value
+        # (e.g. a reset that returns to 0); None means leave the slider as is.
+        self._fallback = fallback
+        self._attr_translation_key = method
+        self._attr_unique_id = f"openkarotz_{method}"
+        self._attr_icon = icon
+        self._attr_entity_category = entity_category
+
+    async def async_press(self) -> None:
+        """Run the ears action and reflect the resulting positions."""
+        try:
+            result = await getattr(self.api, self._method)()
+        except aiohttp.ClientResponseError as err:
+            # Action still happened; we just can't read the new positions.
+            _LOGGER.debug("%s completed despite header issue: %s", self._method, err)
+            return
+        except Exception:
+            _LOGGER.exception("Failed to run ears action %s", self._method)
+            return
+
+        self._sync_ear_numbers(result)
+
+    def _sync_ear_numbers(self, result: Any) -> None:
+        """Push the device-reported ear positions into the number sliders."""
+        data = result if isinstance(result, dict) else {}
+
+        ear_numbers = self._entry_data.get("ear_numbers", {})
+        for field, key in (("ear_left", "left"), ("ear_right", "right")):
+            entity = ear_numbers.get(field)
+            if entity is None:
+                continue
+            raw = data.get(key)
+            if raw is None:
+                # No position reported: apply the fallback if one is defined.
+                if self._fallback is not None:
+                    entity.update_from_device(self._fallback)
+                continue
+            try:
+                value = int(float(raw))
+            except (ValueError, TypeError):
+                _LOGGER.debug("Ignoring non-numeric ear position %r", raw)
+                continue
+            entity.update_from_device(value)
 
 
 class KarotzSnapshotButton(KarotzBaseButton):
