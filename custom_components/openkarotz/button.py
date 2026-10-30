@@ -193,7 +193,7 @@ class KarotzEarsActionButton(KarotzBaseButton):
     device_id = DEVICE_EARS
     device_name = "OpenKarotz Ears"
 
-    def __init__(
+    def __init__(  # noqa: PLR0913
         self,
         coordinator: DataUpdateCoordinator,
         entry_data: dict[str, Any],
