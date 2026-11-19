@@ -9,20 +9,20 @@ from typing import TYPE_CHECKING
 
 from homeassistant.components.image import ImageEntity
 from homeassistant.core import callback
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.util import dt as dt_util
+from homeassistant.util import slugify
 
-from .const import DEFAULT_NAME, DOMAIN, MANUFACTURER, MODEL
+from .const import DEVICE_PICTURE
+from .entity import KarotzEntity
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
-    from homeassistant.helpers.device_registry import DeviceInfo
     from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class KarotzSnapshotSlotImage(CoordinatorEntity, ImageEntity):
+class KarotzSnapshotSlotImage(KarotzEntity, ImageEntity):
     """
     Image entity exposing the Nth most recent snapshot.
 
@@ -32,7 +32,7 @@ class KarotzSnapshotSlotImage(CoordinatorEntity, ImageEntity):
     demand and served through Home Assistant's authenticated image proxy.
     """
 
-    _attr_has_entity_name = True
+    device_id = DEVICE_PICTURE
     _attr_content_type = "image/jpeg"
 
     def __init__(
@@ -45,25 +45,15 @@ class KarotzSnapshotSlotImage(CoordinatorEntity, ImageEntity):
         super().__init__(coordinator)
         self.hass = hass
         self._index = index
-        self.entity_id = f"image.openkarotz_snapshot_{index + 1}"
-        self._attr_unique_id = f"openkarotz_snapshot_slot_{index + 1}"
+        self._set_ids(f"snapshot_slot_{index + 1}")
+        # Dashboard-friendly entity_id: <karotz>_snapshot_N (not ..._slot_N).
+        self.entity_id = f"image.{slugify(self.karotz_name)}_snapshot_{index + 1}"
         self._attr_name = f"Snapshot {index + 1}"
-        self.device_id = "karotz_picture"
         self._current_id: str | None = None
         self._attr_image_last_updated = None
         # Minimal access-token support required by the image component.
         self._access_token = uuid.uuid4().hex
         self._access_tokens = [self._access_token]
-
-    @property
-    def device_info(self) -> DeviceInfo:
-        """Return device information to group entities together."""
-        return {
-            "identifiers": {(DOMAIN, self.device_id)},
-            "name": DEFAULT_NAME,
-            "manufacturer": MANUFACTURER,
-            "model": MODEL,
-        }
 
     @staticmethod
     def _parse_snapshot_time(snapshot_id: str) -> datetime | None:

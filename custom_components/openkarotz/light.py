@@ -8,24 +8,18 @@ from homeassistant.components.light import (
     ColorMode,
     LightEntity,
 )
-from homeassistant.helpers.update_coordinator import (
-    CoordinatorEntity,
-)
 
-from .const import DOMAIN
+from .const import DEVICE_LEDS, DOMAIN
+from .entity import KarotzEntity
 from .led_helper import apply_led_settings
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.core import HomeAssistant
-    from homeassistant.helpers.device_registry import DeviceInfo
     from homeassistant.helpers.entity_platform import AddEntitiesCallback
     from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
     from .shared_state import KarotzSharedState
-
-MANUFACTURER = "Karotz"
-MODEL = "OpenKarotz"
 
 HEX_COLOR_LENGTH = 6
 
@@ -69,15 +63,10 @@ async def async_setup_entry(
 
 
 class KarotzBaseLight(
-    CoordinatorEntity,
+    KarotzEntity,
     LightEntity,
 ):
     """Base class for OpenKarotz light entities."""
-
-    _attr_has_entity_name = True
-
-    device_id: str
-    device_name: str
 
     def __init__(
         self,
@@ -90,24 +79,13 @@ class KarotzBaseLight(
         self.hass = hass
         self.shared_state = shared_state
 
-    @property
-    def device_info(self) -> DeviceInfo:
-        """Return device info."""
-        return {
-            "identifiers": {(DOMAIN, self.device_id)},
-            "name": self.device_name,
-            "manufacturer": MANUFACTURER,
-            "model": MODEL,
-        }
-
 
 class KarotzColorLight(
     KarotzBaseLight,
 ):
     """OpenKarotz color light entity."""
 
-    device_id = "karotz_leds"
-    device_name = "OpenKarotz LEDs"
+    device_id = DEVICE_LEDS
 
     _attr_color_mode = ColorMode.RGB
 
@@ -126,11 +104,9 @@ class KarotzColorLight(
         self.suffix = light_config["suffix"]
         self.api = coordinator.api
 
-        self.entity_id = f"light.openkarotz_color_{self.suffix}"
-
         self._attr_translation_key = light_config["translation_key"]
 
-        self._attr_unique_id = f"openkarotz_color_{self.suffix}"
+        self._set_ids(f"color_{self.suffix}", "light")
 
         # Set default RGB color from configuration
         self._attr_rgb_color = light_config["default_rgb"]

@@ -9,21 +9,15 @@ from homeassistant.components.sensor import (
     SensorStateClass,
 )
 from homeassistant.helpers.entity import EntityCategory
-from homeassistant.helpers.update_coordinator import (
-    CoordinatorEntity,
-)
 
-from .const import DOMAIN
+from .const import DEVICE_KAROTZ, DEVICE_PICTURE, DOMAIN
+from .entity import KarotzEntity
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.core import HomeAssistant
-    from homeassistant.helpers.device_registry import DeviceInfo
     from homeassistant.helpers.entity_platform import AddEntitiesCallback
     from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
-
-MANUFACTURER = "Karotz"
-MODEL = "OpenKarotz"
 
 
 SENSORS = [
@@ -115,29 +109,12 @@ async def async_setup_entry(
 
 
 class KarotzBaseSensor(
-    CoordinatorEntity,
+    KarotzEntity,
     SensorEntity,
 ):
     """Base class for OpenKarotz sensor entities."""
 
-    _attr_has_entity_name = True
-
     device_id: str
-    device_name: str
-
-    def __init__(self, coordinator: DataUpdateCoordinator) -> None:
-        """Initialize sensor entity."""
-        super().__init__(coordinator)
-
-    @property
-    def device_info(self) -> DeviceInfo:
-        """Return device info."""
-        return {
-            "identifiers": {(DOMAIN, self.device_id)},
-            "name": self.device_name,
-            "manufacturer": MANUFACTURER,
-            "model": MODEL,
-        }
 
 
 class KarotzStatusSensor(
@@ -145,8 +122,7 @@ class KarotzStatusSensor(
 ):
     """OpenKarotz status sensor."""
 
-    device_id = "karotz"
-    device_name = "OpenKarotz"
+    device_id = DEVICE_KAROTZ
 
     def __init__(
         self,
@@ -163,7 +139,7 @@ class KarotzStatusSensor(
 
         self._attr_translation_key = key
 
-        self._attr_unique_id = f"openkarotz_{key}"
+        self._set_ids(key)
 
         self._attr_native_unit_of_measurement = unit
 
@@ -187,8 +163,7 @@ class KarotzSnapshotCountSensor(
 ):
     """Sensor counting the number of stored snapshots."""
 
-    device_id = "karotz_picture"
-    device_name = "OpenKarotz Picture"
+    device_id = DEVICE_PICTURE
 
     def __init__(self, coordinator: DataUpdateCoordinator) -> None:
         """Initialize snapshot count sensor."""
@@ -196,7 +171,7 @@ class KarotzSnapshotCountSensor(
 
         self._attr_translation_key = "snapshots"
 
-        self._attr_unique_id = "openkarotz_snapshots"
+        self._set_ids("snapshots")
 
         self._attr_state_class = SensorStateClass.MEASUREMENT
 
@@ -212,7 +187,7 @@ class KarotzSnapshotCountSensor(
 
         This lets a dashboard iterate over the snapshots; the images
         themselves are served through the authenticated image entities
-        (``image.openkarotz_snapshot_N``), not as public ``/local/...`` URLs.
+        (``image.<karotz>_snapshot_N``), not as public ``/local/...`` URLs.
         """
         return {
             "snapshots": [

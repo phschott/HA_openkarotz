@@ -9,7 +9,6 @@ import aiohttp
 from homeassistant.components.button import ButtonEntity
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.event import async_call_later
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import (
     DEVICE_EARS,
@@ -18,17 +17,15 @@ from .const import (
     DEVICE_PICTURE,
     DEVICE_SOUND,
     DOMAIN,
-    MANUFACTURER,
-    MODEL,
     SNAPSHOT_REFRESH_DELAY,
 )
+from .entity import KarotzEntity
 
 if TYPE_CHECKING:
     from datetime import datetime
 
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.core import HomeAssistant
-    from homeassistant.helpers.device_registry import DeviceInfo
     from homeassistant.helpers.entity_platform import AddEntitiesCallback
     from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
@@ -41,56 +38,48 @@ BUTTONS = [
         "method": "reboot",
         "icon": "mdi:restore",
         "device_id": DEVICE_KAROTZ,
-        "device_name": "OpenKarotz",
         "entity_category": EntityCategory.CONFIG,
     },
     {
         "method": "wakeup",
         "icon": "mdi:weather-sunset-up",
         "device_id": DEVICE_KAROTZ,
-        "device_name": "OpenKarotz",
         "entity_category": None,
     },
     {
         "method": "sleep",
         "icon": "mdi:power-sleep",
         "device_id": DEVICE_KAROTZ,
-        "device_name": "OpenKarotz",
         "entity_category": None,
     },
     {
         "method": "led_off",
         "icon": "mdi:lightbulb-off",
         "device_id": DEVICE_LEDS,
-        "device_name": "OpenKarotz LEDs",
         "entity_category": None,
     },
     {
         "method": "sound_pause",
         "icon": "mdi:pause",
         "device_id": DEVICE_SOUND,
-        "device_name": "OpenKarotz Sound",
         "entity_category": None,
     },
     {
         "method": "sound_quit",
         "icon": "mdi:stop",
         "device_id": DEVICE_SOUND,
-        "device_name": "OpenKarotz Sound",
         "entity_category": None,
     },
     {
         "method": "random_mood",
         "icon": "mdi:emoticon-outline",
         "device_id": DEVICE_SOUND,
-        "device_name": "OpenKarotz Sound",
         "entity_category": None,
     },
     {
         "method": "clock",
         "icon": "mdi:clock",
         "device_id": DEVICE_SOUND,
-        "device_name": "OpenKarotz Sound",
         "entity_category": None,
     },
 ]
@@ -137,28 +126,14 @@ async def async_setup_entry(
     async_add_entities(entities)
 
 
-class KarotzBaseButton(CoordinatorEntity, ButtonEntity):
+class KarotzBaseButton(KarotzEntity, ButtonEntity):
     """Base class for OpenKarotz button entities."""
-
-    _attr_has_entity_name = True
-    device_id: str
-    device_name: str
 
     def __init__(self, coordinator: DataUpdateCoordinator) -> None:
         """Initialize button entity."""
         super().__init__(coordinator)
         self.api = coordinator.api
         self.hass = coordinator.hass
-
-    @property
-    def device_info(self) -> DeviceInfo:
-        """Return device info."""
-        return {
-            "identifiers": {(DOMAIN, self.device_id)},
-            "name": self.device_name,
-            "manufacturer": MANUFACTURER,
-            "model": MODEL,
-        }
 
 
 class KarotzButton(KarotzBaseButton):
@@ -172,10 +147,9 @@ class KarotzButton(KarotzBaseButton):
 
         self.method = button_config["method"]
         self.device_id = button_config["device_id"]
-        self.device_name = button_config["device_name"]
 
         self._attr_translation_key = self.method
-        self._attr_unique_id = f"openkarotz_{self.method}"
+        self._set_ids(self.method)
         self._attr_icon = button_config["icon"]
         self._attr_entity_category = button_config["entity_category"]
 
@@ -191,7 +165,6 @@ class KarotzEarsActionButton(KarotzBaseButton):
     """Run an ears API action, then sync the ear sliders to the result."""
 
     device_id = DEVICE_EARS
-    device_name = "OpenKarotz Ears"
 
     def __init__(  # noqa: PLR0913
         self,
@@ -212,7 +185,7 @@ class KarotzEarsActionButton(KarotzBaseButton):
         # (e.g. a reset that returns to 0); None means leave the slider as is.
         self._fallback = fallback
         self._attr_translation_key = method
-        self._attr_unique_id = f"openkarotz_{method}"
+        self._set_ids(method)
         self._attr_icon = icon
         self._attr_entity_category = entity_category
 
@@ -257,7 +230,6 @@ class KarotzSnapshotButton(KarotzBaseButton):
     """Take a photo, then refresh the snapshot gallery."""
 
     device_id = DEVICE_PICTURE
-    device_name = "OpenKarotz Picture"
 
     def __init__(
         self,
@@ -268,7 +240,7 @@ class KarotzSnapshotButton(KarotzBaseButton):
         super().__init__(coordinator)
         self.snapshot_coordinator = snapshot_coordinator
         self._attr_translation_key = "snapshot"
-        self._attr_unique_id = "openkarotz_snapshot"
+        self._set_ids("snapshot")
         self._attr_icon = "mdi:camera"
 
     async def async_press(self) -> None:
@@ -295,7 +267,6 @@ class KarotzClearSnapshotsButton(KarotzBaseButton):
     """Delete all snapshots on the device and in the local HA cache."""
 
     device_id = DEVICE_PICTURE
-    device_name = "OpenKarotz Picture"
 
     def __init__(
         self,
@@ -306,7 +277,7 @@ class KarotzClearSnapshotsButton(KarotzBaseButton):
         super().__init__(coordinator)
         self.snapshot_coordinator = snapshot_coordinator
         self._attr_translation_key = "clear_snapshots"
-        self._attr_unique_id = "openkarotz_clear_snapshots"
+        self._set_ids("clear_snapshots")
         self._attr_icon = "mdi:trash-can"
         self._attr_entity_category = EntityCategory.CONFIG
 
@@ -328,7 +299,6 @@ class KarotzSpeakButton(KarotzBaseButton):
     """Button to speak TTS with selected voice."""
 
     device_id = DEVICE_SOUND
-    device_name = "OpenKarotz Sound"
 
     def __init__(
         self, coordinator: DataUpdateCoordinator, shared_state: KarotzSharedState
@@ -337,7 +307,7 @@ class KarotzSpeakButton(KarotzBaseButton):
         super().__init__(coordinator)
         self.shared_state = shared_state
         self._attr_translation_key = "speak"
-        self._attr_unique_id = "openkarotz_speak"
+        self._set_ids("speak")
         self._attr_icon = "mdi:account-voice"
 
     async def async_press(self) -> None:
@@ -365,7 +335,6 @@ class KarotzMoodButton(KarotzBaseButton):
     """Button to play selected mood."""
 
     device_id = DEVICE_SOUND
-    device_name = "OpenKarotz Sound"
 
     def __init__(
         self, coordinator: DataUpdateCoordinator, shared_state: KarotzSharedState
@@ -374,7 +343,7 @@ class KarotzMoodButton(KarotzBaseButton):
         super().__init__(coordinator)
         self.shared_state = shared_state
         self._attr_translation_key = "mood"
-        self._attr_unique_id = "openkarotz_mood"
+        self._set_ids("mood")
         self._attr_icon = "mdi:emoticon-outline"
 
     async def async_press(self) -> None:
@@ -397,7 +366,6 @@ class KarotzPlaySoundButton(KarotzBaseButton):
     """Button to play the selected local sound."""
 
     device_id = DEVICE_SOUND
-    device_name = "OpenKarotz Sound"
 
     def __init__(
         self, coordinator: DataUpdateCoordinator, shared_state: KarotzSharedState
@@ -406,7 +374,7 @@ class KarotzPlaySoundButton(KarotzBaseButton):
         super().__init__(coordinator)
         self.shared_state = shared_state
         self._attr_translation_key = "play_sound"
-        self._attr_unique_id = "openkarotz_play_sound"
+        self._set_ids("play_sound")
         self._attr_icon = "mdi:music-note"
 
     async def async_press(self) -> None:
@@ -429,7 +397,6 @@ class KarotzPlayRadioButton(KarotzBaseButton):
     """Button to play the selected radio stream."""
 
     device_id = DEVICE_SOUND
-    device_name = "OpenKarotz Sound"
 
     def __init__(
         self, coordinator: DataUpdateCoordinator, shared_state: KarotzSharedState
@@ -438,7 +405,7 @@ class KarotzPlayRadioButton(KarotzBaseButton):
         super().__init__(coordinator)
         self.shared_state = shared_state
         self._attr_translation_key = "play_radio"
-        self._attr_unique_id = "openkarotz_play_radio"
+        self._set_ids("play_radio")
         self._attr_icon = "mdi:radio"
 
     async def async_press(self) -> None:

@@ -10,31 +10,24 @@ from homeassistant.components.switch import (
 from homeassistant.helpers.restore_state import (
     RestoreEntity,
 )
-from homeassistant.helpers.update_coordinator import (
-    CoordinatorEntity,
-)
 
-from .const import DOMAIN
+from .const import DEVICE_LEDS, DOMAIN
+from .entity import KarotzEntity
 from .led_helper import apply_led_settings
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.core import HomeAssistant
-    from homeassistant.helpers.device_registry import DeviceInfo
     from homeassistant.helpers.entity_platform import AddEntitiesCallback
     from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
     from .shared_state import KarotzSharedState
 
-MANUFACTURER = "Karotz"
-MODEL = "OpenKarotz"
-
 
 SWITCHES = [
     (
         "led_pulse",
-        "karotz_leds",
-        "OpenKarotz LEDs",
+        DEVICE_LEDS,
         "mdi:pulse",
         True,
     ),
@@ -57,14 +50,12 @@ async def async_setup_entry(
             shared_state,
             translation_key,
             device_id,
-            device_name,
             icon,
             default_state,
         )
         for (
             translation_key,
             device_id,
-            device_name,
             icon,
             default_state,
         ) in SWITCHES
@@ -74,16 +65,11 @@ async def async_setup_entry(
 
 
 class KarotzBaseSwitch(
-    CoordinatorEntity,
+    KarotzEntity,
     RestoreEntity,
     SwitchEntity,
 ):
     """Base class for OpenKarotz switch entities."""
-
-    _attr_has_entity_name = True
-
-    device_id: str
-    device_name: str
 
     def __init__(
         self,
@@ -95,16 +81,6 @@ class KarotzBaseSwitch(
         super().__init__(coordinator)
         self.hass = hass
         self.shared_state = shared_state
-
-    @property
-    def device_info(self) -> DeviceInfo:
-        """Return device info."""
-        return {
-            "identifiers": {(DOMAIN, self.device_id)},
-            "name": self.device_name,
-            "manufacturer": MANUFACTURER,
-            "model": MODEL,
-        }
 
     async def async_added_to_hass(
         self,
@@ -172,7 +148,6 @@ class KarotzSwitch(
         shared_state: KarotzSharedState,
         translation_key: str,
         device_id: str,
-        device_name: str,
         icon: str,
         default_state: bool,  # noqa: FBT001
     ) -> None:
@@ -180,14 +155,11 @@ class KarotzSwitch(
         super().__init__(coordinator, hass, shared_state)
 
         self.device_id = device_id
-        self.device_name = device_name
         self.api = coordinator.api
-
-        self.entity_id = f"switch.openkarotz_{translation_key}"
 
         self._attr_translation_key = translation_key
 
-        self._attr_unique_id = f"openkarotz_{translation_key}"
+        self._set_ids(translation_key, "switch")
 
         self._attr_icon = icon
 
@@ -195,12 +167,12 @@ class KarotzSwitch(
 
     def _store_shared_state(self) -> None:
         """Mirror the pulse switch state into the shared state."""
-        if self.device_id == "karotz_leds":
+        if self.device_id == DEVICE_LEDS:
             self.shared_state.led_pulse = self._attr_is_on
 
     def _handle_coordinator_update(self) -> None:
         """Sync LED pulse state from device status."""
-        if self.device_id == "karotz_leds" and self.coordinator.data:
+        if self.device_id == DEVICE_LEDS and self.coordinator.data:
             status = self.coordinator.data.get("status") or {}
             led_pulse = status.get("led_pulse")
             if led_pulse is not None:
@@ -210,5 +182,5 @@ class KarotzSwitch(
 
     async def _on_state_changed(self) -> None:
         """Apply LED settings when pulse switch changes."""
-        if self.device_id == "karotz_leds":
+        if self.device_id == DEVICE_LEDS:
             await apply_led_settings(self.api, self.shared_state)

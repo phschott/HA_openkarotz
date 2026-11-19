@@ -19,6 +19,7 @@ from .const import (
 )
 
 if TYPE_CHECKING:
+    from homeassistant.config_entries import ConfigEntry
     from homeassistant.core import HomeAssistant
 
     from .api import KarotzAPI
@@ -29,11 +30,12 @@ _LOGGER = logging.getLogger(__name__)
 class KarotzCoordinator(DataUpdateCoordinator):
     """Main coordinator for OpenKarotz data updates (4-hour interval)."""
 
-    def __init__(self, hass: HomeAssistant, api: KarotzAPI) -> None:
+    def __init__(self, hass: HomeAssistant, entry: ConfigEntry, api: KarotzAPI) -> None:
         """Initialize the coordinator."""
         super().__init__(
             hass,
             _LOGGER,
+            config_entry=entry,
             name="OpenKarotz",
             update_interval=timedelta(seconds=COORDINATOR_UPDATE_INTERVAL),
         )
@@ -56,11 +58,12 @@ class KarotzCoordinator(DataUpdateCoordinator):
 class FastCoordinator(DataUpdateCoordinator):
     """Fast coordinator for frequently polled status (LED, diagnostic sensors)."""
 
-    def __init__(self, hass: HomeAssistant, api: KarotzAPI) -> None:
+    def __init__(self, hass: HomeAssistant, entry: ConfigEntry, api: KarotzAPI) -> None:
         """Initialize the fast coordinator."""
         super().__init__(
             hass,
             _LOGGER,
+            config_entry=entry,
             name="OpenKarotz Fast Data",
             update_interval=timedelta(seconds=COORDINATOR_FAST_UPDATE_INTERVAL),
         )
@@ -90,11 +93,12 @@ class SnapshotCoordinator(DataUpdateCoordinator):
     kept in a small bounded in-memory cache.
     """
 
-    def __init__(self, hass: HomeAssistant, api: KarotzAPI) -> None:
+    def __init__(self, hass: HomeAssistant, entry: ConfigEntry, api: KarotzAPI) -> None:
         """Initialize the snapshot coordinator."""
         super().__init__(
             hass,
             _LOGGER,
+            config_entry=entry,
             name="OpenKarotz Snapshots",
             update_interval=None,
         )

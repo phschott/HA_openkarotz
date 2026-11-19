@@ -3,11 +3,18 @@
     "step": {
       "user": {
         "title": "Connexion OpenKarotz",
-        "description": "Veuillez saisir l'adresse IP locale ou le nom d'hôte de votre OpenKarotz.",
+        "description": "Veuillez saisir l'adresse IP locale ou le nom d'hôte de votre OpenKarotz, ainsi qu'un nom. Le nom est utilisé pour ses appareils et ses identifiants d'entité, par ex. « Cuisine » donne switch.cuisine_led_pulse. Gardez « OpenKarotz » pour obtenir les identifiants utilisés par le tableau de bord d'exemple.",
         "data": {
-          "host": "Adresse IP / Nom d'hôte"
+          "host": "Adresse IP / Nom d'hôte",
+          "name": "Nom"
         }
       }
+    },
+    "error": {
+      "cannot_connect": "Impossible de se connecter au Karotz. Vérifiez l'adresse et qu'OpenKarotz est bien démarré."
+    },
+    "abort": {
+      "already_configured": "Ce Karotz est déjà configuré."
     }
   },
   "entity": {
