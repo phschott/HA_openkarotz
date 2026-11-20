@@ -3,11 +3,18 @@
     "step": {
       "user": {
         "title": "Connection to OpenKarotz",
-        "description": "Please enter local IP address or hostname of your OpenKarotz.",
+        "description": "Enter the local IP address or hostname of your OpenKarotz, and a name for it. The name is used for its devices and entity IDs, e.g. \"Kitchen\" gives switch.kitchen_led_pulse. Keep \"OpenKarotz\" to get the entity IDs used by the example dashboard.",
         "data": {
-          "host": "IP  Address / Hostname"
+          "host": "IP  Address / Hostname",
+          "name": "Name"
         }
       }
+    },
+    "error": {
+      "cannot_connect": "Cannot connect to the Karotz. Check the address and that OpenKarotz is running."
+    },
+    "abort": {
+      "already_configured": "This Karotz is already configured."
     }
   },
   "entity": {

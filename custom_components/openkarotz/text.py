@@ -10,30 +10,23 @@ from homeassistant.components.text import (
 from homeassistant.helpers.restore_state import (
     RestoreEntity,
 )
-from homeassistant.helpers.update_coordinator import (
-    CoordinatorEntity,
-)
 
-from .const import DOMAIN
+from .const import DEVICE_SOUND, DOMAIN
+from .entity import KarotzEntity
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.core import HomeAssistant
-    from homeassistant.helpers.device_registry import DeviceInfo
     from homeassistant.helpers.entity_platform import AddEntitiesCallback
     from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
     from .shared_state import KarotzSharedState
 
-MANUFACTURER = "Karotz"
-MODEL = "OpenKarotz"
-
 
 TEXTS = [
     (
         "tts",
-        "karotz_sound",
-        "OpenKarotz Sound",
+        DEVICE_SOUND,
         "mdi:text-box",
         "",
     ),
@@ -55,14 +48,12 @@ async def async_setup_entry(
             shared_state,
             translation_key,
             device_id,
-            device_name,
             icon,
             default_value,
         )
         for (
             translation_key,
             device_id,
-            device_name,
             icon,
             default_value,
         ) in TEXTS
@@ -72,16 +63,11 @@ async def async_setup_entry(
 
 
 class KarotzBaseText(
-    CoordinatorEntity,
+    KarotzEntity,
     RestoreEntity,
     TextEntity,
 ):
     """Base class for OpenKarotz text entities."""
-
-    _attr_has_entity_name = True
-
-    device_id: str
-    device_name: str
 
     def __init__(
         self,
@@ -91,16 +77,6 @@ class KarotzBaseText(
         """Initialize text entity."""
         super().__init__(coordinator)
         self.shared_state = shared_state
-
-    @property
-    def device_info(self) -> DeviceInfo:
-        """Return device info."""
-        return {
-            "identifiers": {(DOMAIN, self.device_id)},
-            "name": self.device_name,
-            "manufacturer": MANUFACTURER,
-            "model": MODEL,
-        }
 
     async def async_added_to_hass(
         self,
@@ -142,7 +118,6 @@ class KarotzText(
         shared_state: KarotzSharedState,
         translation_key: str,
         device_id: str,
-        device_name: str,
         icon: str,
         default_value: str,
     ) -> None:
@@ -150,14 +125,10 @@ class KarotzText(
         super().__init__(coordinator, shared_state)
 
         self.device_id = device_id
-        self.device_name = device_name
-        self.entity_id = f"text.openkarotz_{translation_key}"
 
         self._attr_translation_key = translation_key
 
-        self._attr_suggested_object_id = translation_key
-
-        self._attr_unique_id = f"openkarotz_{translation_key}"
+        self._set_ids(translation_key, "text")
 
         self._attr_icon = icon
 

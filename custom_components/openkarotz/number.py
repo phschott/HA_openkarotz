@@ -8,7 +8,6 @@ from typing import TYPE_CHECKING, Any
 
 from homeassistant.components.number import NumberEntity
 from homeassistant.helpers.restore_state import RestoreEntity
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import (
     DEVICE_EARS,
@@ -20,15 +19,13 @@ from .const import (
     LED_SPEED_DEFAULT_VALUE,
     LED_SPEED_MAX_VALUE,
     LED_SPEED_MIN_VALUE,
-    MANUFACTURER,
-    MODEL,
 )
+from .entity import KarotzEntity
 from .led_helper import apply_led_settings
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.core import HomeAssistant
-    from homeassistant.helpers.device_registry import DeviceInfo
     from homeassistant.helpers.entity_platform import AddEntitiesCallback
     from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
@@ -40,7 +37,6 @@ NUMBERS = [
     {
         "translation_key": "ear_left",
         "device_id": DEVICE_EARS,
-        "device_name": "OpenKarotz Ears",
         "icon": "mdi:rabbit",
         "min_value": EAR_MIN_VALUE,
         "max_value": EAR_MAX_VALUE,
@@ -52,7 +48,6 @@ NUMBERS = [
     {
         "translation_key": "ear_right",
         "device_id": DEVICE_EARS,
-        "device_name": "OpenKarotz Ears",
         "icon": "mdi:rabbit",
         "min_value": EAR_MIN_VALUE,
         "max_value": EAR_MAX_VALUE,
@@ -64,7 +59,6 @@ NUMBERS = [
     {
         "translation_key": "pulse_speed",
         "device_id": DEVICE_LEDS,
-        "device_name": "OpenKarotz LEDs",
         "icon": "mdi:speedometer",
         "min_value": LED_SPEED_MIN_VALUE,
         "max_value": LED_SPEED_MAX_VALUE,
@@ -104,10 +98,8 @@ async def async_setup_entry(
     async_add_entities(entities)
 
 
-class KarotzBaseNumber(CoordinatorEntity, RestoreEntity, NumberEntity):
+class KarotzBaseNumber(KarotzEntity, RestoreEntity, NumberEntity):
     """Base class for OpenKarotz number entities."""
-
-    _attr_has_entity_name = True
 
     def __init__(
         self,
@@ -120,16 +112,6 @@ class KarotzBaseNumber(CoordinatorEntity, RestoreEntity, NumberEntity):
         self.api = coordinator.api
         self.hass = hass
         self.shared_state = shared_state
-
-    @property
-    def device_info(self) -> DeviceInfo:
-        """Return device info."""
-        return {
-            "identifiers": {(DOMAIN, self.device_id)},
-            "name": self.device_name,
-            "manufacturer": MANUFACTURER,
-            "model": MODEL,
-        }
 
     async def async_added_to_hass(self) -> None:
         """Restore previous state."""
@@ -174,14 +156,12 @@ class KarotzNumber(KarotzBaseNumber):
         super().__init__(coordinator, hass, shared_state)
 
         self.device_id = number_config["device_id"]
-        self.device_name = number_config["device_name"]
-        # Pin a stable, language-independent entity_id for the dashboard.
-        self.entity_id = f"number.openkarotz_{number_config['translation_key']}"
         # Shared-state attribute this number maps to (ear_left/ear_right/
         # pulse_speed); matches the translation key.
         self.field = number_config["translation_key"]
         self._attr_translation_key = number_config["translation_key"]
-        self._attr_unique_id = f"openkarotz_{number_config['translation_key']}"
+        # Stable, language-independent entity_id for the dashboard.
+        self._set_ids(self.field, "number")
         self._attr_icon = number_config["icon"]
         self._attr_native_min_value = number_config["min_value"]
         self._attr_native_max_value = number_config["max_value"]

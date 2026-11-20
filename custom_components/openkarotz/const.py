@@ -5,8 +5,12 @@ DOMAIN = "openkarotz"
 MANUFACTURER = "Karotz"
 MODEL = "OpenKarotz"
 
-# File and Image Configuration
-DEFAULT_NAME = "OpenKarotz Picture"
+# Config entry keys and defaults
+CONF_NAME = "name"
+# Default Karotz name. Its slug ("openkarotz") is the entity_id prefix, so a
+# Karotz keeping this name gets the historical entity_ids used by
+# dashboard.yaml (e.g. switch.openkarotz_led_pulse).
+DEFAULT_KAROTZ_NAME = "OpenKarotz"
 
 # Max number of snapshot images kept in memory. Bytes are fetched from the
 # device on demand through Home Assistant's authenticated image proxy and
@@ -28,6 +32,15 @@ DEVICE_EARS = "karotz_ears"
 DEVICE_LEDS = "karotz_leds"
 DEVICE_SOUND = "karotz_sound"
 DEVICE_PICTURE = "karotz_picture"
+
+# Device name = "<Karotz name> <suffix>", e.g. "Kitchen Ears".
+DEVICE_NAME_SUFFIXES = {
+    DEVICE_KAROTZ: "",
+    DEVICE_EARS: "Ears",
+    DEVICE_LEDS: "LEDs",
+    DEVICE_SOUND: "Sound",
+    DEVICE_PICTURE: "Picture",
+}
 
 # Coordinator Update Intervals (in seconds)
 COORDINATOR_UPDATE_INTERVAL = 14400  # 4 hours

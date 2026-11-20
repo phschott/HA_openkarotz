@@ -11,23 +11,17 @@ from homeassistant.components.select import (
 from homeassistant.helpers.restore_state import (
     RestoreEntity,
 )
-from homeassistant.helpers.update_coordinator import (
-    CoordinatorEntity,
-)
 
-from .const import DOMAIN
+from .const import DEVICE_SOUND, DOMAIN
+from .entity import KarotzEntity
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.core import HomeAssistant
-    from homeassistant.helpers.device_registry import DeviceInfo
     from homeassistant.helpers.entity_platform import AddEntitiesCallback
     from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
     from .shared_state import KarotzSharedState
-
-MANUFACTURER = "Karotz"
-MODEL = "OpenKarotz"
 
 
 SELECTS = [
@@ -94,16 +88,13 @@ async def async_setup_entry(
 
 
 class KarotzBaseSelect(
-    CoordinatorEntity,
+    KarotzEntity,
     RestoreEntity,
     SelectEntity,
 ):
     """Base class for OpenKarotz selects."""
 
-    _attr_has_entity_name = True
-
-    device_id = "karotz_sound"
-    device_name = "OpenKarotz Sound"
+    device_id = DEVICE_SOUND
 
     def __init__(
         self,
@@ -119,16 +110,6 @@ class KarotzBaseSelect(
         self._attr_options = []
 
         self._attr_current_option = None
-
-    @property
-    def device_info(self) -> DeviceInfo:
-        """Return device info."""
-        return {
-            "identifiers": {(DOMAIN, self.device_id)},
-            "name": self.device_name,
-            "manufacturer": MANUFACTURER,
-            "model": MODEL,
-        }
 
     async def async_added_to_hass(
         self,
@@ -185,11 +166,9 @@ class KarotzSelect(
         # stores its value under "radio".
         self._field = "radio" if translation_key == "radios" else translation_key
 
-        self.entity_id = f"select.openkarotz_{translation_key}"
-
         self._attr_translation_key = translation_key
 
-        self._attr_unique_id = f"openkarotz_{translation_key}"
+        self._set_ids(translation_key, "select")
 
         self._attr_icon = icon
 

@@ -48,10 +48,18 @@ Control your [Nabaztag/Karotz](https://docs.nabaztag.com) rabbit from Home Assis
 
 1. Go to **Settings → Devices & Services → Add Integration**
 2. Search for **OpenKarotz**
-3. Enter the IP address or hostname of your rabbit
+3. Enter the IP address or hostname of your rabbit, and a **name** for it (default: `OpenKarotz`)
 4. Click **Submit**
 
 The integration will auto-discover all entities and group them into devices.
+
+### Several rabbits
+
+Repeat the steps above for each rabbit, giving each one its own name. The name is used for its devices (e.g. *Kitchen Ears*) and as the prefix of its entity IDs: a rabbit named `Kitchen` gets `switch.kitchen_led_pulse`, `select.kitchen_voice`, … while a rabbit keeping the default name `OpenKarotz` gets the `openkarotz_` IDs used by the sample dashboard.
+
+Each rabbit is identified by its WLAN MAC address, so adding the same rabbit twice is refused; if its IP address changed, adding it again simply updates the address.
+
+> **Upgrading from 1.4.x:** your existing rabbit is migrated automatically and keeps its entity IDs, history, dashboards and automations. If you had tried to add a second rabbit with 1.4.x (which failed with *"ID openkarotz_… is already used"*), delete that second entry and add it again after upgrading.
 
 ---
 
@@ -154,7 +162,7 @@ or an RFID tag) appears after the next integration reload or button press.
 
 A ready-to-use dashboard (`dashboard.yaml`) is included in the repository. It covers four tabs: **Apparence** (LEDs, voice, ears), **Photos** (take a photo + a clickable 3-column snapshot gallery, tap a thumbnail for a full-screen view), **Sounds** (local sounds & radios), and **État** (device status & controls).
 
-> **Note:** The integration's own buttons (Speak, Mood, Sound, Radio, ears, LEDs) share their state internally and no longer depend on entity IDs, so they keep working whatever your HA language and even if you rename an entity. The dashboard cards, however, still reference entities by ID: the select/number/text/light/switch entities use fixed IDs (`select.openkarotz_voice`, `number.openkarotz_pulse_speed`, …), while the sensors and buttons keep Home Assistant's auto-generated names, which depend on your HA language setting — adjust those to your locale if needed.
+> **Note:** The integration's own buttons (Speak, Mood, Sound, Radio, ears, LEDs) share their state internally and no longer depend on entity IDs, so they keep working whatever your HA language and even if you rename an entity. The dashboard cards, however, still reference entities by ID: the select/number/text/light/switch/image entities use fixed IDs (`select.openkarotz_voice`, `number.openkarotz_pulse_speed`, …) derived from the rabbit's name — for a rabbit with another name, import a copy of the dashboard and replace `openkarotz_` with its prefix (e.g. `kitchen_`), while the sensors and buttons keep Home Assistant's auto-generated names, which depend on your HA language setting — adjust those to your locale if needed.
 
 ### Import the dashboard
 
